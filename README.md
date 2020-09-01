@@ -1,7 +1,7 @@
 # Satisfactory-AB_FluidExtras
 The development source for the Satisfactory mod AB_FluidExtras
 
-See the mod page for details [todo](https://ficsit.app/)
+See the [mod page](https://ficsit.app/mod/xmYZyoM1y5nTw) for details
 
 # License
 All work is free to use or redistribute for the purpose of Satisfactory modification, given proper attribution to me and identical restrictions on derivative content.
