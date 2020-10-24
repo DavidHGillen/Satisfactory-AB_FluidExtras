@@ -3,3 +3,4 @@ _promo/*.afdesign
 *.blend[0-9]*
 *_autosave_[0-9].spp
 *.fbx
+/FluidPacker/*.ods
