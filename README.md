@@ -22,6 +22,7 @@ If you want to do development work with this content first checkout the structur
 
 I use the following software:
 
+* GIT-LFS
 * Blender
   * Y.A.V.N.E.
 * Affinity Designer

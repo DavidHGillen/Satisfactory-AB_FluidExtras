@@ -4,3 +4,4 @@ _promo/*.afdesign
 *_autosave_[0-9].spp
 *.fbx
 /FluidPacker/*.ods
+desktop.ini
