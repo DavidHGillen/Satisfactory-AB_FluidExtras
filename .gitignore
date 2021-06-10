@@ -10,4 +10,6 @@ _*Ref.*
 desktop.ini
 /Audio_Source
 /PluginFolder/Saved
+/PluginFolder/Binaries
+/PluginFolder/Intermediate
 /PluginFolder/Metadata/Crypto.json

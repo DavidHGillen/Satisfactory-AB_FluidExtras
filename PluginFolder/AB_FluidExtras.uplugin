@@ -15,6 +15,13 @@
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
+	"Modules" : [
+		{
+			"Name" : "AB_FluidExtras",
+			"Type" : "Runtime",
+			"LoadingPhase" : "Default"
+		}
+	],
 	"Plugins": [
 		{
 			"Name": "SML",
