@@ -25,14 +25,8 @@ protected:
 	// Factory interface
 	//////////////////////////////////////////////////////
 	virtual void Factory_Tick(float dt) override;
-	//virtual void Factory_CollectInput_Implementation() override;
-	//virtual void Factory_PullPipeInput_Implementation(float dt) override;
 	virtual void Factory_ConsumeIngredients() override;
 	virtual bool IsConfigured() const override;
-
-	/******
-	void SetRecipe( TSubclassOf< class UFGRecipe > recipe );
-	******/
 
 	// Custom
 	//////////////////////////////////////////////////////

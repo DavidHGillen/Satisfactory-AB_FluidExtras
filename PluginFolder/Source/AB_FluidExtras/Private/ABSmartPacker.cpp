@@ -80,22 +80,51 @@ void AABSmartPacker::FindRecipeFromInputs() {
 
 	UE_LOG(LogTemp, Warning, TEXT("INPUTS: %s - %s"), *UFGItemDescriptor::GetItemName(currentFluidIn).ToString(), *UFGItemDescriptor::GetItemName(currentSolidIn).ToString());
 
-	if (currentFluidIn == nullptr && currentSolidIn == nullptr) { return; }
+	if (currentSolidIn == nullptr) { return; }
 
 	// recipe
 	tryUpdateRecipeCache(GetWorld());
+	bool assumePacking = currentFluidIn != nullptr;
+	TSubclassOf<class UFGRecipe> foundRecipe = nullptr;
 
-	// use the above references
-	// use the above references
-	// use the above references
-	// use the above references
-	// use the above references
-	// use the above references
-	// use the above references
-	// use the above references
-	// use the above references
-	// use the above references
-	// use the above references
-	// use the above references
+	for (int i = 0, l = recipeCache.Num(); i < l; i++) {
+		UFGRecipe* examine = recipeCache[i].GetDefaultObject();
+		TArray<FItemAmount>& ingredients = examine->mIngredients;
+
+		if (assumePacking) {
+			if (ingredients.Num() != 2) { continue; }
+
+			if ((ingredients[0].ItemClass == currentFluidIn || ingredients[0].ItemClass == currentSolidIn) &&
+				(ingredients[1].ItemClass == currentFluidIn || ingredients[0].ItemClass == currentSolidIn)) {
+				foundRecipe = recipeCache[i];
+				break;
+			}
+		} else {
+			if (ingredients.Num() != 1) { continue; }
+
+			if (ingredients[0].ItemClass == currentSolidIn) {
+				foundRecipe = recipeCache[i];
+				break;
+			}
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("FOUND!: %s "), *UFGRecipe::GetRecipeName(foundRecipe).ToString());
+
+	// set it
+	if (foundRecipe != nullptr) {
+		//empty the inventories!
+		//empty the inventories!
+		//empty the inventories!
+		//empty the inventories!
+		//empty the inventories!
+		//empty the inventories!
+
+		isLookingforRecipe = false;
+
+		if (GetLocalRole() == ENetRole::ROLE_Authority) {
+			SetRecipe(foundRecipe);
+		}
+	}
 }
 
