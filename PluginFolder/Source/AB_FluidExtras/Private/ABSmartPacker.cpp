@@ -7,10 +7,11 @@ TSubclassOf<UObject> AABSmartPacker::vanillaPacker = nullptr;
 
 AABSmartPacker::AABSmartPacker() {
 	if (vanillaPacker == nullptr) {
-		vanillaPacker = ConstructorHelpers::FClassFinder<UObject>(TEXT("/Game/FactoryGame/Buildable/Factory/Packager/Build_Packager.Build_Packager_C")).Class;
+		vanillaPacker = ConstructorHelpers::FClassFinder<UObject>(
+			TEXT("/Game/FactoryGame/Buildable/Factory/Packager/Build_Packager.Build_Packager_C")
+		).Class;
 	}
 
-	isLookingforRecipe = true;
 	currentFluidIn = nullptr;
 	currentSolidIn = nullptr;
 }
@@ -18,18 +19,13 @@ AABSmartPacker::AABSmartPacker() {
 // Factory interface
 //////////////////////////////////////////////////////
 void AABSmartPacker::Factory_Tick(float dt) {
-	if (isLookingforRecipe) {
+	Super::Factory_Tick(dt);
+
+	if (GetLocalRole() != ENetRole::ROLE_Authority) { return; }
+
+	if (!HasRequiredIngredients()) {
 		FindRecipeFromInputs();
 	}
-
-	Super::Factory_Tick(dt);
-}
-
-void AABSmartPacker::Factory_ConsumeIngredients() {
-	Super::Factory_ConsumeIngredients();
-
-	// if we can't keep going, go shopping
-	isLookingforRecipe = !HasRequiredIngredients();
 }
 
 bool AABSmartPacker::IsConfigured() const {
@@ -42,7 +38,7 @@ bool AABSmartPacker::IsConfigured() const {
 void AABSmartPacker::tryUpdateRecipeCache(UWorld* world) {
 	// time limit function
 	float now = world->GetRealTimeSeconds();
-	//if (now < lastRecipeCache + 15.0f) { return; }
+	if (now < lastRecipeCache + 15.0f) { return; }
 	lastRecipeCache = now;
 
 	// set recipes on cache
@@ -80,7 +76,7 @@ void AABSmartPacker::FindRecipeFromInputs() {
 
 	UE_LOG(LogTemp, Warning, TEXT("INPUTS: %s - %s"), *UFGItemDescriptor::GetItemName(currentFluidIn).ToString(), *UFGItemDescriptor::GetItemName(currentSolidIn).ToString());
 
-	if (currentSolidIn == nullptr) { return; }
+	if (currentSolidIn == nullptr) { return; } // no valid recipe has no solid
 
 	// recipe
 	tryUpdateRecipeCache(GetWorld());
@@ -88,8 +84,7 @@ void AABSmartPacker::FindRecipeFromInputs() {
 	TSubclassOf<class UFGRecipe> foundRecipe = nullptr;
 
 	for (int i = 0, l = recipeCache.Num(); i < l; i++) {
-		UFGRecipe* examine = recipeCache[i].GetDefaultObject();
-		TArray<FItemAmount>& ingredients = examine->mIngredients;
+		TArray<FItemAmount> ingredients = UFGRecipe::GetIngredients(recipeCache[i]);
 
 		if (assumePacking) {
 			if (ingredients.Num() != 2) { continue; }
@@ -113,18 +108,17 @@ void AABSmartPacker::FindRecipeFromInputs() {
 
 	// set it
 	if (foundRecipe != nullptr) {
-		//empty the inventories!
-		//empty the inventories!
-		//empty the inventories!
-		//empty the inventories!
-		//empty the inventories!
-		//empty the inventories!
-
-		isLookingforRecipe = false;
-
-		if (GetLocalRole() == ENetRole::ROLE_Authority) {
-			SetRecipe(foundRecipe);
-		}
+		NewRecipeFound(foundRecipe);
 	}
+}
+
+// CANNOT BE CALLED FROM TICK DUE TO THREADING ISSUES HENCE BP BYPASS
+void AABSmartPacker::ForceRecipe(TSubclassOf<class UFGRecipe> recipe) {
+	// with packing we're deleting input inventory here, not sure that's an issue
+	// with unpacking we delete jammed output, not sure that's an issue 
+	ClearOutputInventoryItems();
+	ClearInputInventoryItems();
+
+	SetRecipe(recipe);
 }
 

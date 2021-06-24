@@ -21,14 +21,20 @@ class AB_FLUIDEXTRAS_API AABSmartPacker : public AFGBuildableManufacturer
 
 	AABSmartPacker();
 
+public:
+	UFUNCTION(BlueprintImplementableEvent)
+	void NewRecipeFound(TSubclassOf<class UFGRecipe> recipe);
+
+	UFUNCTION(BlueprintCallable, Category = "FactoryGame|Factory|Recipe")
+	virtual void ForceRecipe(TSubclassOf<class UFGRecipe> recipe);
+
 protected:
 	// Factory interface
 	//////////////////////////////////////////////////////
 	virtual void Factory_Tick(float dt) override;
-	virtual void Factory_ConsumeIngredients() override;
 	virtual bool IsConfigured() const override;
 
-	// Custom
+	// Shared packer
 	//////////////////////////////////////////////////////
 	static float lastRecipeCache;
 	static TArray< TSubclassOf<class UFGRecipe> > recipeCache;
@@ -36,7 +42,8 @@ protected:
 
 	static void tryUpdateRecipeCache(UWorld* world);
 
-	bool isLookingforRecipe;
+	// Local packer
+	//////////////////////////////////////////////////////
 	TSubclassOf<UFGItemDescriptor> currentFluidIn;
 	TSubclassOf<UFGItemDescriptor> currentSolidIn;
 
