@@ -19,14 +19,14 @@ class AB_FLUIDEXTRAS_API AABSmartPacker : public AFGBuildableManufacturer
 {
 	GENERATED_BODY()
 
-	AABSmartPacker();
+		AABSmartPacker();
 
 public:
 	UFUNCTION(BlueprintImplementableEvent)
-	void NewRecipeFound(TSubclassOf<class UFGRecipe> recipe);
+		void NewRecipeFound(TSubclassOf<class UFGRecipe> recipe);
 
 	UFUNCTION(BlueprintCallable, Category = "FactoryGame|Factory|Recipe")
-	virtual void ForceRecipe(TSubclassOf<class UFGRecipe> recipe);
+		virtual void ForceRecipe(TSubclassOf<class UFGRecipe> recipe);
 
 protected:
 	// Factory interface

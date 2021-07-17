@@ -47,8 +47,7 @@ void AABSmartPacker::tryUpdateRecipeCache(UWorld* world) {
 	lastRecipeCache = now;
 
 	// set recipes on cache
-	AFGRecipeManager* rm = AFGRecipeManager::Get(world);
-	rm->GetAvailableRecipesForProducer(vanillaPacker, recipeCache);
+	AFGRecipeManager::Get(world)->GetAvailableRecipesForProducer(vanillaPacker, recipeCache);
 
 	//UE_LOG(LogTemp, Warning, TEXT("Updating smart packer recipe cache [ %d ] Recipes found"), recipeCache.Num());
 }
