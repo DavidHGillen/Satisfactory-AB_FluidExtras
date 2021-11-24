@@ -5,6 +5,7 @@ _promo/*.afdesign
 *.blend[0-9]*
 *.painter_lock
 *_autosave_[0-9].spp
+*/.autosave/*
 *.fbx
 _*Ref.*
 /FluidPacker/*.ods
