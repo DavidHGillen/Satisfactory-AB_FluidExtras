@@ -70,7 +70,7 @@ void AABSmartPacker::FindRecipeFromInputs() {
 		mFactoryInputConnections[0]->Factory_PeekOutput(peekResult, nullptr);
 
 		for (int i = 0, l = peekResult.Num(); i < l && beltIncoming == nullptr; i++) {
-			beltIncoming = peekResult[0].ItemClass;
+			beltIncoming = peekResult[0].GetItemClass();
 		}
 
 		foundSolid = beltIncoming;
