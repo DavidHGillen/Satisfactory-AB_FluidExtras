@@ -1,8 +1,8 @@
 {
 	"FileVersion": 3,
 	"Version": 0,
-	"VersionName": "0.8.6",
-	"SemVersion": "0.8.6",
+	"VersionName": "0.8.7",
+	"SemVersion": "0.8.7",
 	"FriendlyName": "Fluid Extras",
 	"Description": "Eight new pipe junctions, alternate Mini Water Extractor, and new A.I. Packing machine.",
 	"Category": "Modding",
@@ -15,11 +15,11 @@
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
-	"Modules" : [
+	"Modules": [
 		{
-			"Name" : "AB_FluidExtras",
-			"Type" : "Runtime",
-			"LoadingPhase" : "Default"
+			"Name": "AB_FluidExtras",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
 		}
 	],
 	"Plugins": [
