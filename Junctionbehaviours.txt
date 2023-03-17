@@ -1,0 +1,44 @@
+Upright rotation fidelity to match worldgrid
+Match all spin fidelity
+Spin axis not corrected to snap target
+Tri bolts mismatch
+
+-- Cross
+Mid: spin
+End: spin
+Grd: spin
+
+-- Valve / Pump
+Mid: toggle+spin
+End: toggle+spin
+Grd: spin
+
+-- Tee
+Mid: spin
+End: toggle+spin
+Grd: spin+spin
+
+-- Fork
+Mid: toggle+spin
+End: toggle+spin
+Grd: toggle+spin
+
+-- DoubleT / Stars (3,4)
+Mid: spin
+End: toggle+spin
+Grd: spin
+
+-- L / Tri
+Mid: none
+End: spin
+Grd: spin
+
+-- 45 / 90 / 180
+Mid: none
+End: spin
+Grd: spin+spin
+
+-- Caps (3,4)
+Mid: none
+End: toggle+spin
+Grd: spin
