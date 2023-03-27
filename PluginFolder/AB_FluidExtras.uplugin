@@ -1,8 +1,8 @@
 {
 	"FileVersion": 3,
 	"Version": 0,
-	"VersionName": "0.9.0",
-	"SemVersion": "0.9.0",
+	"VersionName": "0.9.1",
+	"SemVersion": "0.9.1",
 	"FriendlyName": "Fluid Extras",
 	"Description": "Several new pipe junctions, alternate Mini Water Extractor, and new A.I. Packing machine.",
 	"Category": "Modding",
