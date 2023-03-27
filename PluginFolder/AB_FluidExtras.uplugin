@@ -1,10 +1,10 @@
 {
 	"FileVersion": 3,
 	"Version": 0,
-	"VersionName": "0.8.7",
-	"SemVersion": "0.8.7",
+	"VersionName": "0.9.0",
+	"SemVersion": "0.9.0",
 	"FriendlyName": "Fluid Extras",
-	"Description": "Eight new pipe junctions, alternate Mini Water Extractor, and new A.I. Packing machine.",
+	"Description": "Several new pipe junctions, alternate Mini Water Extractor, and new A.I. Packing machine.",
 	"Category": "Modding",
 	"CreatedBy": "AngryBeaver#9028",
 	"CreatedByURL": "",
