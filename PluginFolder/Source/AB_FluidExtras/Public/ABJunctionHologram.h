@@ -5,6 +5,14 @@
 #include "Hologram/FGPipelineAttachmentHologram.h"
 #include "ABJunctionHologram.generated.h"
 
+UENUM()
+enum class EPipelineJunc_HoloBehaviour : uint8
+{
+	PJHB_NONE,
+	PJHB_SPIN,
+	PJHB_DBLSPIN
+};
+
 /**
  * 
  */
@@ -16,6 +24,16 @@ class AB_FLUIDEXTRAS_API AABJunctionHologram : public AFGPipelineAttachmentHolog
 public:
 	AABJunctionHologram();
 
+	UPROPERTY(EditDefaultsOnly, Category = "Junction Hologram")
+	EPipelineJunc_HoloBehaviour eCapAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Junction Hologram")
+	EPipelineJunc_HoloBehaviour eGroundAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Junction Hologram")
+	EPipelineJunc_HoloBehaviour eMidlineAction;
+
+	virtual bool TrySnapToActor(const FHitResult& hitResult) override;
 	virtual bool DoMultiStepPlacement(bool isInputFromARelease) override;
 
 protected:

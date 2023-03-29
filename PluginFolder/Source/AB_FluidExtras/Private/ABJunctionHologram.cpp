@@ -5,6 +5,10 @@
 AABJunctionHologram::AABJunctionHologram() {
 }
 
+bool AABJunctionHologram::TrySnapToActor(const FHitResult& hitResult) {
+	return Super::TrySnapToActor(hitResult);
+}
+
 bool AABJunctionHologram::DoMultiStepPlacement(bool isInputFromARelease) {
 	return Super::DoMultiStepPlacement(isInputFromARelease);
 }
