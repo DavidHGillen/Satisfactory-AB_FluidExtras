@@ -39,4 +39,8 @@ public:
 protected:
 	virtual void ScrollRotate(int32 delta, int32 step) override;
 	virtual int32 GetRotationStep() const override;
+
+	void RotateFromSnappedElement();
+
+	bool VanillaTrySnap(const FHitResult& hitResult);
 };
