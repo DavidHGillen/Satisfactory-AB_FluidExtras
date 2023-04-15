@@ -33,7 +33,7 @@ void AABJunctionHologram::RotateFromSnappedElement() {
 
 	if (mSnappedConnectionComponent != NULL) {
 		UFGPipeConnectionComponent* myConnector = mPipeConnectionComponents[mSnapConnectionIndex];
-
+		/*
 		FRotator::
 
 		GetScrollRotateValue() * -1;
@@ -41,54 +41,42 @@ void AABJunctionHologram::RotateFromSnappedElement() {
 		SetActorRotation();
 
 		mSnappedConnectionComponent->GetComponentRotation();
-
+		*/
 	} else if(mSnappedPipeline != NULL) {
-		
+
 	}
 }
 
-		/*
+		//*
 bool AABJunctionHologram::VanillaTrySnap(const FHitResult& hitResult) {
-	char uVar1;
 	code* pcVar2;
 	undefined auVar3[12];
 	undefined auVar4[16];
 	undefined uVar6;
 	undefined extraout_AL;
 	AFGBuildablePipeline* hitPipeRef;
-	UClass* hitClass;
-	FFGHologramGuidelineSnapResult* pFVar9;
-	FMatrix* pFVar10;
-	FVector* pFVar11;
-	FRotator* pFVar12;
-	FTransform* pFVar13;
+	FFGHologramGuidelineSnapResult* guideSnapResult;
+	FMatrix* someMatrix;
+	FVector* someVector;
+	FRotator* someRotator;
+	FTransform* someTransform;
 	UObject* hitUObjRef;
-	UClass* pUVar15;
 	AFGBuildableWall* hitWallRef;
 	FVector* pFVar17;
 	int iVar18;
 	USceneComponent* sceneComponent;
 	undefined8* puVar20;
 	float fVar21;
-	float fVar22;
-	float fVar24;
 	float fVar25;
-	float fVar26;
 	undefined auVar23[16];
-	float fVar27;
 	unsigned int uVar28;
 	unsigned int uVar29;
 	unsigned int uVar30;
 	float fVar31;
-	float fVar32;
-	float fVar33;
 	float fVar34;
 	float fVar35;
-	float fVar36;
 	float fVar37;
-	float fVar38;
 	float fVar39;
-	float fVar40;
 	float fVar41;
 	float fVar42;
 	unsigned int uVar43;
@@ -98,24 +86,13 @@ bool AABJunctionHologram::VanillaTrySnap(const FHitResult& hitResult) {
 	float fVar47;
 	float fVar48;
 	float fVar49;
-	float fVar50;
-	float fVar51;
-	float fVar52;
-	float fVar53;
-	float fVar54;
-	float fVar55;
-	float fVar56;
-	float fVar57;
 	float in_xmmTmp2_Dd;
-	float fVar58;
 	undefined auStackY_608[32];
 	FVector local_5b8;
-	FVector local_5a8;
+	FVector foundSnapNormal;
 	FVector local_598;
-	FRotator local_588;
-	FVector local_578;
-	unsigned int local_568[2];
-	unsigned int local_560[2];
+	FRotator snapRotator;
+	FVector foundSnapLocation;
 	undefined local_558[16];
 	undefined local_548[4];
 	undefined auStack_544[4];
@@ -166,7 +143,6 @@ bool AABJunctionHologram::VanillaTrySnap(const FHitResult& hitResult) {
 	FVector local_380;
 	FVector local_374;
 	FMatrix local_368;
-	FMatrix local_328;
 	FMatrix local_2e8;
 	FMatrix local_2a8;
 	FMatrix local_268;
@@ -174,10 +150,9 @@ bool AABJunctionHologram::VanillaTrySnap(const FHitResult& hitResult) {
 	undefined local_1f8[16];
 	undefined local_1e8[16];
 	undefined local_1d8[16];
-	undefined local_1c8[16];
+	FTransform local_1c8;
 	undefined local_1b8[16];
 	undefined local_1a8[16];
-	FTransform local_198;
 	FTransform local_168;
 	FFGHologramGuidelineSnapResult local_138;
 
@@ -190,813 +165,836 @@ bool AABJunctionHologram::VanillaTrySnap(const FHitResult& hitResult) {
 		// PIPE //
 		hitPipeRef = (AFGBuildablePipeline*)&(hitResult.Actor);
 		if (hitPipeRef != NULL) {
+			this->mSnappedPipeline = hitPipeRef;
+		
+			fVar21 = (float)(**(code**)(*(long long*)hitPipeRef + 0x7a0))(hitPipeRef, hitResult.Location);
+			this->mSnappedPipelineOffset = fVar21;
+			(**(code**)(*(long long*)this->mSnappedPipeline + 0x7a8))();
 
-			hitClass = AFGBuildablePipeline::GetPrivateStaticClass();
+			TrySnapToConnection(50.0, foundSnapLocation, foundSnapNormal);
 
-			bool valid = UStruct::IsChildOf(*(UStruct**)&hitPipeRef->field_0x10, (UStruct*)hitClass);
-			if (valid) {
-				this->mSnappedPipeline = hitPipeRef;
-				fVar21 = (float)(**(code**)(*(long long*)hitPipeRef + 0x7a0))(hitPipeRef, hitResult.Location);
-				this->mSnappedPipelineOffset = fVar21;
-				(**(code**)(*(long long*)this->mSnappedPipeline + 0x7a8))();
-				TrySnapToConnection(this, 50.0, &local_578, &local_5a8);
-				if ((this->field_0x470 == '\0') && (this->field_0x2d1 != '\0')) {
-					pFVar9 = AFGBuildableHologram::SnapHologramLocationToGuidelines
-					((AFGBuildableHologram*)this, &local_138, &local_578);
-					_func__thiscall_FFGHologramGuidelineSnapResult_ptr_FFGHologramGuidelineSnapResult_ptr
-					(&this->field_0x400, pFVar9);
-					if (this->field_0x45c != '\0') {
-						fVar21 = (float)(**(code**)(*(long long*)hitPipeRef + 0x7a0))(hitPipeRef, &this->field_0x450);
-						this->mSnappedPipelineOffset = fVar21;
-						(**(code**)(*(long long*)this->mSnappedPipeline + 0x7a8))();
-					}
+			if ((this->field_0x470 == NULL) && (this->field_0x2d1 != NULL)) {
+				guideSnapResult = &SnapHologramLocationToGuidelines(foundSnapLocation);
+				_func__thiscall_FFGHologramGuidelineSnapResult_ptr_FFGHologramGuidelineSnapResult_ptr(&this->field_0x400, guideSnapResult);
+				if (this->field_0x45c != NULL) {
+					fVar21 = (float)(**(code**)(*(long long*)hitPipeRef + 0x7a0))(hitPipeRef, &this->field_0x450);
+					this->mSnappedPipelineOffset = fVar21;
+					(**(code**)(*(long long*)this->mSnappedPipeline + 0x7a8))();
 				}
-				pFVar10 = (FMatrix*)FRotationMatrix::MakeFromX(&local_328, (FVector*)&local_5a8);
-				FMatrix::Rotator(pFVar10, &local_588);
-				uVar1 = (this->mRotationAxis).Value;
+			}
 
-				if (uVar1 == '\x01') {
-					fVar21 = AFGHologram::ApplyScrollRotationTo((AFGHologram*)this, 0.0, false);
-					local_588._0_8_ =
-						local_588._0_8_ & 0xffffffff00000000 | (unsigned long long)(uint)(local_588.Pitch + fVar21);
+			someMatrix = &FRotationMatrix::MakeFromX(foundSnapNormal);
+			snapRotator = someMatrix->Rotator();
 
-				} else if (uVar1 == '\x02') {
-					fVar21 = AFGHologram::ApplyScrollRotationTo((AFGHologram*)this, 0.0, false);
-					local_588.Roll = local_588.Roll + fVar21;
+			EAxis::Type eRotAxis = this->mRotationAxis;
+			if (eRotAxis == EAxis::X) {
+				fVar21 = AFGHologram::ApplyScrollRotationTo(0.0, false);
+				snapRotator._0_8_ = snapRotator._0_8_ & 0xffffffff00000000 | (unsigned long long)(uint)(snapRotator.Pitch + fVar21);
 
-				} else if ((uVar1 == '\x03') &&
-					((this->mSnappedConnectionComponent == (UFGPipeConnectionComponent*)0x0 ||
-						(this->mIncrementSnappedConnectionOnScroll == false)))) {
-					FRotationMatrix::MakeFromX(&local_368, (FVector*)&local_5a8);
-					pFVar11 = _func__thiscall_FVector_Type(&local_368, &local_374, Z);
-					fVar21 = AFGHologram::ApplyScrollRotationTo((AFGHologram*)this, 0.0, false);
-					pFVar11 = _func__thiscall_FVector_float_FVector_ptr(&local_5a8, &local_380, fVar21, pFVar11);
-					local_5a8._0_8_ = *(undefined8*)pFVar11;
-					local_5a8.Z = pFVar11->Z;
-					pFVar10 = (FMatrix*)FRotationMatrix::MakeFromX(&local_2e8, (FVector*)&local_5a8);
-					pFVar12 = FMatrix::Rotator(pFVar10, &local_398);
-					local_588._0_8_ = *(unsigned long long*)pFVar12;
-					local_588.Roll = pFVar12->Roll;
+			} else if (eRotAxis == EAxis::Y) {
+				fVar21 = AFGHologram::ApplyScrollRotationTo(0.0, false);
+				snapRotator.Roll = snapRotator.Roll + fVar21;
+
+			} else if ((eRotAxis == EAxis::Z) && ((this->mSnappedConnectionComponent == NULL || (this->mIncrementSnappedConnectionOnScroll == false)))) {
+				FRotationMatrix::MakeFromX(&local_368, (FVector*)&foundSnapNormal);
+				someVector = _func__thiscall_FVector_Type(&local_368, &local_374, Z);
+				fVar21 = AFGHologram::ApplyScrollRotationTo(0.0, false);
+
+				someVector = _func__thiscall_FVector_float_FVector_ptr(&foundSnapNormal, &local_380, fVar21, someVector);
+				foundSnapNormal._0_8_ = *(undefined8*)someVector;
+				foundSnapNormal.Z = someVector->Z;
+
+				someMatrix = (FMatrix*)FRotationMatrix::MakeFromX(&local_2e8, (FVector*)&foundSnapNormal);
+				someRotator = FMatrix::Rotator(someMatrix, &local_398);
+				snapRotator._0_8_ = *(unsigned long long*)someRotator;
+				snapRotator.Roll = someRotator->Roll;
+			}
+
+			pcVar2 = OneVector_exref;
+			local_3d8 = snapRotator.Quaternion();
+			local_228.Translation.V = (float[4])ZEXT1216((undefined[12])foundSnapLocation);
+
+			local_228.Rotation.V[0] = local_3d8.X;
+			local_228.Rotation.V[1] = local_3d8.Y;
+			local_228.Rotation.V[2] = local_3d8.Z;
+			local_228.Rotation.V[3] = local_3d8.W;
+
+			local_228.Scale3D.V = (float[4])ZEXT1216(*(undefined(*)[12])pcVar2);
+
+			if (this->mSnappedConnectionComponent == NULL) {
+				someTransform = &local_228;
+
+			} else {
+				float fLocal_6;
+				float fLocal_7;
+				float fLocal_10;
+				float fLocal_8;
+				float fLocal_12;
+				float fLocal_13;
+				float fLocal_14;
+				float fLocal_15;
+				float fLocal_16;
+				float fLocal_4;
+				float fLocal_17;
+				float fLocal_5;
+
+				unsigned int snapIndex = this->mSnapConnectionIndex;
+				local_400 = &this->mPipeConnectionComponents;
+				uVar28 = 0;
+
+				if (snapIndex < mPipeConnectionComponents.Num()) {
+					uVar28 = ~snapIndex >> 0x1f;
 				}
 
-				pcVar2 = OneVector_exref;
-				FRotator::Quaternion(&local_588, &local_3d8);
-				local_228.Translation.V = (float[4])ZEXT1216((undefined[12])local_578);
-				local_228.Rotation.V[0] = local_3d8.X;
-				local_228.Rotation.V[1] = local_3d8.Y;
-				local_228.Rotation.V[2] = local_3d8.Z;
-				local_228.Rotation.V[3] = local_3d8.W;
-				local_228.Scale3D.V = (float[4])ZEXT1216(*(undefined(*)[12])pcVar2);
-				if (this->mSnappedConnectionComponent == (UFGPipeConnectionComponent*)0x0) {
-					pFVar13 = &local_228;
+				if (uVar28 == 0) {
+					local_408 = snapIndex;
+					_func__cdecl_void_<lambda_e564da29fc75c0aef1975a3dea611db9>_ptr((<lambda_e564da29fc75c0aef1975a3dea611db9> *) & local_408);
+					pcVar2 = (code*)swi(3);
+					uVar6 = (*pcVar2)();
+					return (bool)uVar6;
+				}
+
+				sceneComponent = *(USceneComponent**)((local_400->AllocatorInstance).Data + (long long)(int)local_560[0] * 8);
+				someTransform = sceneComponent->GetRelativeTransform();
+
+				uVar28 = SUB164((undefined[16])GlobalVectorConstants::SignMask >> 0x20, 0);
+				uVar29 = SUB164((undefined[16])GlobalVectorConstants::SignMask >> 0x40, 0);
+				uVar30 = SUB164((undefined[16])GlobalVectorConstants::SignMask >> 0x60, 0);
+
+				fLocal_15 = SUB164((undefined[16])GlobalVectorConstants::SmallNumber >> 0x20, 0);
+				fLocal_17 = SUB164((undefined[16])GlobalVectorConstants::SmallNumber >> 0x60, 0);
+
+				uVar43 = SUB164((undefined[16])GlobalVectorConstants::XYZMask >> 0x20, 0);
+				uVar44 = SUB164((undefined[16])GlobalVectorConstants::XYZMask >> 0x40, 0);
+				uVar45 = SUB164((undefined[16])GlobalVectorConstants::XYZMask >> 0x60, 0);
+
+				auVar23 = *(undefined(*)[16])(someTransform->Scale3D).V;
+
+				fLocal_16 = SUB164(auVar23, 0);
+				fLocal_4 = SUB164(auVar23 >> 0x20, 0);
+				fLocal_5 = SUB164(auVar23 >> 0x40, 0);
+
+				fLocal_12 = (float)((uint)fLocal_16 & SUB164((undefined[16])GlobalVectorConstants::SignMask.m128_u32, 0));
+				fLocal_13 = (float)((uint)fLocal_4 & uVar28);
+				fLocal_14 = (float)(SUB164(auVar23 >> 0x60, 0) & uVar30);
+
+				iVar18 = movmskps((int)sceneComponent,
+					CONCAT412(-(uint)(fLocal_17 < in_xmmTmp2_Dd),
+						CONCAT48(-(uint)(SUB164((undefined[16])
+							GlobalVectorConstants::SmallNumber >>
+							0x40, 0) < fLocal_14),
+							CONCAT44(-(uint)(fLocal_15 < fLocal_13),
+								-(uint)(SUB164((undefined[16])
+									GlobalVectorConstants::
+									SmallNumber.m128_f32, 0) <
+									fLocal_12))))
+				);
+					
+				fVar21 = SUB164((undefined[16])GlobalVectorConstants::FloatOne >> 0x60, 0);
+				if (iVar18 == 0) {
+					fLocal_6 = *(float*)Identity_exref;
+					fLocal_7 = *(float*)(Identity_exref + 4);
+					fLocal_10 = *(float*)(Identity_exref + 8);
+					fLocal_8 = *(float*)(Identity_exref + 0xc);
+
+					fLocal_12 = *(float*)(Identity_exref + 0x10);
+					fLocal_13 = *(float*)(Identity_exref + 0x14);
+					fLocal_14 = *(float*)(Identity_exref + 0x18);
+					fLocal_15 = *(float*)(Identity_exref + 0x1c);
+
+					fLocal_16 = *(float*)(Identity_exref + 0x20);
+					fLocal_4 = *(float*)(Identity_exref + 0x24);
+					fLocal_17 = *(float*)(Identity_exref + 0x28);
+					fLocal_5 = *(float*)(Identity_exref + 0x2c);
+
+					someTransform = (FTransform*)Identity_exref;
 
 				} else {
-					local_560[0] = this->mSnapConnectionIndex;
-					local_400 = &this->mPipeConnectionComponents;
-					uVar28 = 0;
+					fLocal_6 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK.m128_f32, 0) * (someTransform->Rotation).V[0];
+					fLocal_7 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK >> 0x20, 0) * (someTransform->Rotation).V[1];
+					fLocal_10 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK >> 0x40, 0) * (someTransform->Rotation).V[2];
+					fLocal_8 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK >> 0x60, 0) * (someTransform->Rotation).V[3];
+					auVar23 = rcpps(CONCAT412(fLocal_14, CONCAT48((uint)fLocal_5 & uVar29, CONCAT44(fLocal_13, fLocal_12))), CONCAT412(fVar21, SUB1612(auVar23, 0)));
+					// rcpps, vec norm, reciprocal, ps means SIMD
 
-					if ((int)local_560[0] < (this->mPipeConnectionComponents).ArrayNum) {
-						uVar28 = ~local_560[0] >> 0x1f;
-					}
+					fLocal_12 = SUB164(auVar23, 0);
+					fLocal_13 = SUB164(auVar23 >> 0x20, 0);
+					fLocal_14 = SUB164(auVar23 >> 0x40, 0);
+					fLocal_9 = SUB164(auVar23 >> 0x60, 0);
 
-					if (uVar28 == 0) {
-						local_408 = local_560;
-						_func__cdecl_void_<lambda_e564da29fc75c0aef1975a3dea611db9>_ptr
-						((<lambda_e564da29fc75c0aef1975a3dea611db9> *) & local_408);
-						pcVar2 = (code*)swi(3);
-						uVar6 = (*pcVar2)();
-						return (bool)uVar6;
-					}
+					fLocal_12 = (fLocal_12 + fLocal_12) - fLocal_12 * fLocal_12 * fLocal_16;
+					fLocal_13 = (fLocal_13 + fLocal_13) - fLocal_13 * fLocal_13 * fLocal_4;
+					fLocal_14 = (fLocal_14 + fLocal_14) - fLocal_14 * fLocal_14 * fLocal_5;
+					fLocal_9 = (fLocal_9 + fLocal_9) - fLocal_9 * fLocal_9 * fVar21;
 
-					sceneComponent = *(USceneComponent**)((local_400->AllocatorInstance).Data + (long long)(int)local_560[0] * 8);
-					pFVar13 = USceneComponent::GetRelativeTransform(sceneComponent, &local_198);
-					uVar28 = SUB164((undefined[16])GlobalVectorConstants::SignMask >> 0x20, 0);
-					uVar29 = SUB164((undefined[16])GlobalVectorConstants::SignMask >> 0x40, 0);
-					uVar30 = SUB164((undefined[16])GlobalVectorConstants::SignMask >> 0x60, 0);
-					fVar32 = SUB164((undefined[16])GlobalVectorConstants::SmallNumber >> 0x20, 0);
-					fVar33 = SUB164((undefined[16])GlobalVectorConstants::SmallNumber >> 0x60, 0);
-					uVar43 = SUB164((undefined[16])GlobalVectorConstants::XYZMask >> 0x20, 0);
-					uVar44 = SUB164((undefined[16])GlobalVectorConstants::XYZMask >> 0x40, 0);
-					uVar45 = SUB164((undefined[16])GlobalVectorConstants::XYZMask >> 0x60, 0);
-					auVar23 = *(undefined(*)[16])(pFVar13->Scale3D).V;
-					fVar50 = SUB164(auVar23, 0);
-					fVar51 = SUB164(auVar23 >> 0x20, 0);
-					fVar52 = SUB164(auVar23 >> 0x40, 0);
-					fVar22 = (float)((uint)fVar50 & SUB164((undefined[16])GlobalVectorConstants::SignMask.m128_u32, 0));
-					fVar24 = (float)((uint)fVar51 & uVar28);
-					fVar26 = (float)(SUB164(auVar23 >> 0x60, 0) & uVar30);
-					iVar18 = movmskps((int)sceneComponent,
-						CONCAT412(-(uint)(fVar33 < in_xmmTmp2_Dd),
-							CONCAT48(-(uint)(SUB164((undefined[16])
-								GlobalVectorConstants::SmallNumber >>
-								0x40, 0) < fVar26),
-								CONCAT44(-(uint)(fVar32 < fVar24),
-									-(uint)(SUB164((undefined[16])
-										GlobalVectorConstants::
-										SmallNumber.m128_f32, 0) <
-										fVar22))))
-					);
-					
-					fVar21 = SUB164((undefined[16])GlobalVectorConstants::FloatOne >> 0x60, 0);
-					if (iVar18 == 0) {
-						fVar54 = *(float*)Identity_exref;
-						fVar55 = *(float*)(Identity_exref + 4);
-						fVar56 = *(float*)(Identity_exref + 8);
-						fVar57 = *(float*)(Identity_exref + 0xc);
-						fVar22 = *(float*)(Identity_exref + 0x10);
-						fVar24 = *(float*)(Identity_exref + 0x14);
-						fVar26 = *(float*)(Identity_exref + 0x18);
-						fVar32 = *(float*)(Identity_exref + 0x1c);
-						fVar50 = *(float*)(Identity_exref + 0x20);
-						fVar51 = *(float*)(Identity_exref + 0x24);
-						fVar33 = *(float*)(Identity_exref + 0x28);
-						fVar52 = *(float*)(Identity_exref + 0x2c);
-						pFVar13 = (FTransform*)Identity_exref;
+					fLocal_12 = (fLocal_12 + fLocal_12) - fLocal_12 * fLocal_12 * fLocal_16;
+					fLocal_13 = (fLocal_13 + fLocal_13) - fLocal_13 * fLocal_13 * fLocal_4;
+					fLocal_14 = (fLocal_14 + fLocal_14) - fLocal_14 * fLocal_14 * fLocal_5;
+					fLocal_9 = (fLocal_9 + fLocal_9) - fLocal_9 * fLocal_9 * fVar21;
 
-					} else {
-						fVar54 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK.m128_f32, 0) *
-							(pFVar13->Rotation).V[0];
-						fVar55 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK >> 0x20, 0) *
-							(pFVar13->Rotation).V[1];
-						fVar56 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK >> 0x40, 0) *
-							(pFVar13->Rotation).V[2];
-						fVar57 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK >> 0x60, 0) *
-							(pFVar13->Rotation).V[3];
-						auVar23 = rcpps(CONCAT412(fVar26, CONCAT48((uint)fVar52 & uVar29, CONCAT44(fVar24, fVar22))
-						), CONCAT412(fVar21, SUB1612(auVar23, 0)));
-						fVar22 = SUB164(auVar23, 0);
-						fVar24 = SUB164(auVar23 >> 0x20, 0);
-						fVar26 = SUB164(auVar23 >> 0x40, 0);
-						fVar27 = SUB164(auVar23 >> 0x60, 0);
-						fVar22 = (fVar22 + fVar22) - fVar22 * fVar22 * fVar50;
-						fVar24 = (fVar24 + fVar24) - fVar24 * fVar24 * fVar51;
-						fVar26 = (fVar26 + fVar26) - fVar26 * fVar26 * fVar52;
-						fVar27 = (fVar27 + fVar27) - fVar27 * fVar27 * fVar21;
-						fVar22 = (fVar22 + fVar22) - fVar22 * fVar22 * fVar50;
-						fVar24 = (fVar24 + fVar24) - fVar24 * fVar24 * fVar51;
-						fVar26 = (fVar26 + fVar26) - fVar26 * fVar26 * fVar52;
-						fVar27 = (fVar27 + fVar27) - fVar27 * fVar27 * fVar21;
-						fVar50 = (float)((-(uint)((float)((uint)fVar50 &
+					fLocal_16 = (float)((-(uint)((float)((uint)fLocal_16 &
+						SUB164((undefined[16])
+							GlobalVectorConstants::SignMask.m128_u32, 0)) <=
+						SUB164((undefined[16])
+							GlobalVectorConstants::SmallNumber.m128_f32, 0)) &
+						(uint)fLocal_12 ^ (uint)fLocal_12) &
+						SUB164((undefined[16])GlobalVectorConstants::XYZMask.m128_u32, 0));
+					fLocal_4 = (float)((-(uint)((float)((uint)fLocal_4 & uVar28) <= fLocal_15) & (uint)fLocal_13 ^
+						(uint)fLocal_13) & uVar43);
+					fLocal_17 = (float)((-(uint)((float)((uint)fLocal_5 & uVar29) <= fLocal_17) & (uint)fLocal_14 ^
+						(uint)fLocal_14) & uVar44);
+					fLocal_5 = (float)((-(uint)((float)((uint)fVar21 & uVar30) <= in_xmmTmp2_Dd) &
+						(uint)fLocal_9 ^ (uint)fLocal_9) & uVar45);
+
+					fLocal_12 = fLocal_16 * (someTransform->Translation).V[0];
+					fLocal_13 = fLocal_4 * (someTransform->Translation).V[1];
+					fLocal_0 = fLocal_17 * (someTransform->Translation).V[2];
+					fLocal_1 = fLocal_5 * (someTransform->Translation).V[3];
+
+					fLocal_14 = fLocal_7 * 0.0 - fLocal_13 * 0.0;
+					fLocal_15 = fLocal_12 * fLocal_10 - fLocal_0 * fLocal_6;
+					fLocal_9 = fLocal_13 * fLocal_6 - fLocal_12 * fLocal_7;
+					fLocal_11 = fLocal_1 * fLocal_8 - fLocal_1 * fLocal_8;
+
+					fLocal_14 = fLocal_14 + fLocal_14;
+					fLocal_15 = fLocal_15 + fLocal_15;
+					fLocal_9 = fLocal_9 + fLocal_9;
+					fLocal_11 = fLocal_11 + fLocal_11;
+					fLocal_12 = (float)((uint)(0.0 - ((fLocal_7 * 0.0 - fLocal_15 * 0.0) + fLocal_8 * fLocal_14 + fLocal_12)
+						) &
+						SUB164((undefined[16])GlobalVectorConstants::XYZMask.m128_u32, 0));
+					fLocal_13 = (float)((uint)(0.0 - ((fLocal_14 * fLocal_10 - fLocal_9 * fLocal_6) + fLocal_8 * fLocal_15 + fLocal_13)) & uVar43);
+					fLocal_14 = (float)((uint)(0.0 - ((fLocal_15 * fLocal_6 - fLocal_14 * fLocal_7) + fLocal_8 * fLocal_9 + fLocal_0)) & uVar44);
+					fLocal_15 = (float)((uint)(0.0 - ((fLocal_11 * fLocal_8 - fLocal_11 * fLocal_8) + fLocal_8 * fLocal_11 + fLocal_1)) & uVar45);
+				}
+
+				fLocal_9 = SUB164((undefined[16])local_228.Scale3D.V, 0);
+				fLocal_11 = SUB164((undefined[16])local_228.Scale3D.V >> 0x20, 0);
+				fLocal_0 = SUB164((undefined[16])local_228.Scale3D.V >> 0x40, 0);
+				fLocal_1 = SUB164((undefined[16])local_228.Scale3D.V >> 0x60, 0);
+				auVar23 = minps(CONCAT412(fLocal_5, CONCAT48(fLocal_17, CONCAT44(fLocal_4, fLocal_16))), (undefined[16])local_228.Scale3D.V);
+				fLocal_2 = SUB164((undefined[16])GlobalVectorConstants::FloatZero >> 0x60, 0);
+				iVar18 = movmskps((int)someTransform,
+					CONCAT412(-(uint)(SUB164(auVar23 >> 0x60, 0) < fLocal_2),
+						CONCAT48(-(uint)(SUB164(auVar23 >> 0x40, 0) <
 							SUB164((undefined[16])
-								GlobalVectorConstants::SignMask.m128_u32, 0)) <=
-							SUB164((undefined[16])
-								GlobalVectorConstants::SmallNumber.m128_f32, 0)) &
-							(uint)fVar22 ^ (uint)fVar22) &
-							SUB164((undefined[16])GlobalVectorConstants::XYZMask.m128_u32, 0));
-						fVar51 = (float)((-(uint)((float)((uint)fVar51 & uVar28) <= fVar32) & (uint)fVar24 ^
-							(uint)fVar24) & uVar43);
-						fVar33 = (float)((-(uint)((float)((uint)fVar52 & uVar29) <= fVar33) & (uint)fVar26 ^
-							(uint)fVar26) & uVar44);
-						fVar52 = (float)((-(uint)((float)((uint)fVar21 & uVar30) <= in_xmmTmp2_Dd) &
-							(uint)fVar27 ^ (uint)fVar27) & uVar45);
-						fVar22 = fVar50 * (pFVar13->Translation).V[0];
-						fVar24 = fVar51 * (pFVar13->Translation).V[1];
-						fVar38 = fVar33 * (pFVar13->Translation).V[2];
-						fVar40 = fVar52 * (pFVar13->Translation).V[3];
-						fVar26 = fVar55 * 0.0 - fVar24 * 0.0;
-						fVar32 = fVar22 * fVar56 - fVar38 * fVar54;
-						fVar27 = fVar24 * fVar54 - fVar22 * fVar55;
-						fVar36 = fVar40 * fVar57 - fVar40 * fVar57;
-						fVar26 = fVar26 + fVar26;
-						fVar32 = fVar32 + fVar32;
-						fVar27 = fVar27 + fVar27;
-						fVar36 = fVar36 + fVar36;
-						fVar22 = (float)((uint)(0.0 - ((fVar55 * 0.0 - fVar32 * 0.0) + fVar57 * fVar26 + fVar22)
-							) &
-							SUB164((undefined[16])GlobalVectorConstants::XYZMask.m128_u32, 0));
-						fVar24 = (float)((uint)(0.0 - ((fVar26 * fVar56 - fVar27 * fVar54) +
-							fVar57 * fVar32 + fVar24)) & uVar43);
-						fVar26 = (float)((uint)(0.0 - ((fVar32 * fVar54 - fVar26 * fVar55) +
-							fVar57 * fVar27 + fVar38)) & uVar44);
-						fVar32 = (float)((uint)(0.0 - ((fVar36 * fVar57 - fVar36 * fVar57) +
-							fVar57 * fVar36 + fVar40)) & uVar45);
-					}
-
-					fVar27 = SUB164((undefined[16])local_228.Scale3D.V, 0);
-					fVar36 = SUB164((undefined[16])local_228.Scale3D.V >> 0x20, 0);
-					fVar38 = SUB164((undefined[16])local_228.Scale3D.V >> 0x40, 0);
-					fVar40 = SUB164((undefined[16])local_228.Scale3D.V >> 0x60, 0);
-					auVar23 = minps(CONCAT412(fVar52, CONCAT48(fVar33, CONCAT44(fVar51, fVar50))),
-						(undefined[16])local_228.Scale3D.V);
-					fVar58 = SUB164((undefined[16])GlobalVectorConstants::FloatZero >> 0x60, 0);
-					iVar18 = movmskps((int)pFVar13,
-						CONCAT412(-(uint)(SUB164(auVar23 >> 0x60, 0) < fVar58),
-							CONCAT48(-(uint)(SUB164(auVar23 >> 0x40, 0) <
+								GlobalVectorConstants::FloatZero >>
+								0x40, 0)),
+							CONCAT44(-(uint)(SUB164(auVar23 >> 0x20, 0) <
 								SUB164((undefined[16])
-									GlobalVectorConstants::FloatZero >>
-									0x40, 0)),
-								CONCAT44(-(uint)(SUB164(auVar23 >> 0x20, 0) <
+									GlobalVectorConstants::
+									FloatZero >> 0x20, 0)),
+								-(uint)(SUB164(auVar23, 0) <
 									SUB164((undefined[16])
 										GlobalVectorConstants::
-										FloatZero >> 0x20, 0)),
-									-(uint)(SUB164(auVar23, 0) <
-										SUB164((undefined[16])
-											GlobalVectorConstants::
-											FloatZero.m128_f32, 0)))))
-					);
+										FloatZero.m128_f32, 0)))))
+				);
 					
-					if (iVar18 == 0) {
-						pFVar13 = (FTransform*)local_1f8;
-						fVar22 = fVar22 * fVar27;
-						fVar24 = fVar24 * fVar36;
-						fVar32 = fVar32 * fVar40;
-						local_1d8 = CONCAT412(fVar52 * fVar40, CONCAT48(fVar33 * fVar38, CONCAT44(fVar51 * fVar36, fVar50 * fVar27) ));
-						local_1f8 = CONCAT412(fVar54 * local_228.Rotation.V[0] *
-							SUB164((undefined[16])GlobalVectorConstants::QMULTI_SIGN_MASK0
-								>> 0x60, 0) + fVar57 * local_228.Rotation.V[3] +
-							fVar55 * local_228.Rotation.V[1] *
-							SUB164((undefined[16])GlobalVectorConstants::QMULTI_SIGN_MASK1
-								>> 0x60, 0) +
-							SUB164((undefined[16])GlobalVectorConstants::QMULTI_SIGN_MASK2
-								>> 0x60, 0) * 0.0,
-							CONCAT48(fVar55 * local_228.Rotation.V[0] *
+				if (iVar18 == 0) {
+					someTransform = (FTransform*)local_1f8;
+					fLocal_12 = fLocal_12 * fLocal_9;
+					fLocal_13 = fLocal_13 * fLocal_11;
+					fLocal_15 = fLocal_15 * fLocal_1;
+					local_1d8 = CONCAT412(fLocal_5 * fLocal_1, CONCAT48(fLocal_17 * fLocal_0, CONCAT44(fLocal_4 * fLocal_11, fLocal_16 * fLocal_9) ));
+					local_1f8 = CONCAT412(fLocal_6 * local_228.Rotation.V[0] *
+						SUB164((undefined[16])GlobalVectorConstants::QMULTI_SIGN_MASK0
+							>> 0x60, 0) + fLocal_8 * local_228.Rotation.V[3] +
+						fLocal_7 * local_228.Rotation.V[1] *
+						SUB164((undefined[16])GlobalVectorConstants::QMULTI_SIGN_MASK1
+							>> 0x60, 0) +
+						SUB164((undefined[16])GlobalVectorConstants::QMULTI_SIGN_MASK2
+							>> 0x60, 0) * 0.0,
+						CONCAT48(fLocal_7 * local_228.Rotation.V[0] *
+							SUB164((undefined[16])
+								GlobalVectorConstants::QMULTI_SIGN_MASK0 >> 0x40, 0
+							) + fLocal_10 * local_228.Rotation.V[3] +
+							fLocal_6 * local_228.Rotation.V[1] *
+							SUB164((undefined[16])
+								GlobalVectorConstants::QMULTI_SIGN_MASK1 >> 0x40, 0
+							) + fLocal_8 * 0.0 *
+							SUB164((undefined[16])
+								GlobalVectorConstants::QMULTI_SIGN_MASK2
+								>> 0x40, 0),
+							CONCAT44(local_228.Rotation.V[0] * 0.0 *
 								SUB164((undefined[16])
-									GlobalVectorConstants::QMULTI_SIGN_MASK0 >> 0x40, 0
-								) + fVar56 * local_228.Rotation.V[3] +
-								fVar54 * local_228.Rotation.V[1] *
+									GlobalVectorConstants::QMULTI_SIGN_MASK0
+									>> 0x20, 0) +
+								fLocal_7 * local_228.Rotation.V[3] +
+								fLocal_8 * local_228.Rotation.V[1] *
 								SUB164((undefined[16])
-									GlobalVectorConstants::QMULTI_SIGN_MASK1 >> 0x40, 0
-								) + fVar57 * 0.0 *
+									GlobalVectorConstants::QMULTI_SIGN_MASK1
+									>> 0x20, 0) +
+								fLocal_6 * local_228.Rotation.V[2] *
 								SUB164((undefined[16])
 									GlobalVectorConstants::QMULTI_SIGN_MASK2
-									>> 0x40, 0),
-								CONCAT44(local_228.Rotation.V[0] * 0.0 *
-									SUB164((undefined[16])
-										GlobalVectorConstants::QMULTI_SIGN_MASK0
-										>> 0x20, 0) +
-									fVar55 * local_228.Rotation.V[3] +
-									fVar57 * local_228.Rotation.V[1] *
-									SUB164((undefined[16])
-										GlobalVectorConstants::QMULTI_SIGN_MASK1
-										>> 0x20, 0) +
-									fVar54 * local_228.Rotation.V[2] *
-									SUB164((undefined[16])
-										GlobalVectorConstants::QMULTI_SIGN_MASK2
-										>> 0x20, 0),
-									fVar57 * local_228.Rotation.V[0] *
-									SUB164((undefined[16])
-										GlobalVectorConstants::QMULTI_SIGN_MASK0.
-										m128_f32, 0) +
-									fVar54 * local_228.Rotation.V[3] +
-									fVar56 * local_228.Rotation.V[1] *
-									SUB164((undefined[16])
-										GlobalVectorConstants::QMULTI_SIGN_MASK1.
-										m128_f32, 0) +
-									fVar55 * local_228.Rotation.V[2] *
-									SUB164((undefined[16])
-										GlobalVectorConstants::QMULTI_SIGN_MASK2.
-										m128_f32, 0))));
-						fVar21 = local_228.Rotation.V[1] * 0.0 - fVar24 * 0.0;
-						fVar33 = fVar22 * 0.0 - fVar26 * fVar38 * local_228.Rotation.V[0];
-						fVar50 = fVar24 * local_228.Rotation.V[0] - fVar22 * local_228.Rotation.V[1];
-						fVar51 = fVar32 * local_228.Rotation.V[3] - fVar32 * local_228.Rotation.V[3];
-						fVar21 = fVar21 + fVar21;
-						fVar33 = fVar33 + fVar33;
-						fVar50 = fVar50 + fVar50;
-						fVar51 = fVar51 + fVar51;
-						local_1e8 = CONCAT412((fVar51 * local_228.Rotation.V[3] -
-							fVar51 * local_228.Rotation.V[3]) +
-							local_228.Rotation.V[3] * fVar51 + fVar32 +
-							local_228.Translation.V[3],
-							CONCAT48((fVar33 * local_228.Rotation.V[0] -
-								fVar21 * local_228.Rotation.V[1]) +
-								local_228.Rotation.V[3] * fVar50 + fVar26 * fVar38 +
-								local_228.Translation.V[2],
-								CONCAT44((fVar21 * 0.0 - fVar50 * local_228.Rotation.V[0]
-									) + local_228.Rotation.V[3] * fVar33 + fVar24 +
-									local_228.Translation.V[1],
-									(fVar50 * local_228.Rotation.V[1] - fVar33 * 0.0
-										) + local_228.Rotation.V[3] * fVar21 + fVar22 +
-									local_228.Translation.V[0])));
+									>> 0x20, 0),
+								fLocal_8 * local_228.Rotation.V[0] *
+								SUB164((undefined[16])
+									GlobalVectorConstants::QMULTI_SIGN_MASK0.
+									m128_f32, 0) +
+								fLocal_6 * local_228.Rotation.V[3] +
+								fLocal_10 * local_228.Rotation.V[1] *
+								SUB164((undefined[16])
+									GlobalVectorConstants::QMULTI_SIGN_MASK1.
+									m128_f32, 0) +
+								fLocal_7 * local_228.Rotation.V[2] *
+								SUB164((undefined[16])
+									GlobalVectorConstants::QMULTI_SIGN_MASK2.
+									m128_f32, 0))));
+					fVar21 = local_228.Rotation.V[1] * 0.0 - fLocal_13 * 0.0;
+					fLocal_17 = fLocal_12 * 0.0 - fLocal_14 * fLocal_0 * local_228.Rotation.V[0];
+					fLocal_16 = fLocal_13 * local_228.Rotation.V[0] - fLocal_12 * local_228.Rotation.V[1];
+					fLocal_4 = fLocal_15 * local_228.Rotation.V[3] - fLocal_15 * local_228.Rotation.V[3];
+					fVar21 = fVar21 + fVar21;
+					fLocal_17 = fLocal_17 + fLocal_17;
+					fLocal_16 = fLocal_16 + fLocal_16;
+					fLocal_4 = fLocal_4 + fLocal_4;
+					local_1e8 = CONCAT412((fLocal_4 * local_228.Rotation.V[3] -
+						fLocal_4 * local_228.Rotation.V[3]) +
+						local_228.Rotation.V[3] * fLocal_4 + fLocal_15 +
+						local_228.Translation.V[3],
+						CONCAT48((fLocal_17 * local_228.Rotation.V[0] -
+							fVar21 * local_228.Rotation.V[1]) +
+							local_228.Rotation.V[3] * fLocal_16 + fLocal_14 * fLocal_0 +
+							local_228.Translation.V[2],
+							CONCAT44((fVar21 * 0.0 - fLocal_16 * local_228.Rotation.V[0]
+								) + local_228.Rotation.V[3] * fLocal_17 + fLocal_13 +
+								local_228.Translation.V[1],
+								(fLocal_16 * local_228.Rotation.V[1] - fLocal_17 * 0.0
+									) + local_228.Rotation.V[3] * fVar21 + fLocal_12 +
+								local_228.Translation.V[0])));
 
-					} else {
-						fVar32 = local_228.Rotation.V[1] + local_228.Rotation.V[1];
-						fVar34 = (local_228.Rotation.V[0] + local_228.Rotation.V[0]) * local_228.Rotation.V[0];
-						fVar53 = SUB164((undefined[16])GlobalVectorConstants::FloatOne >> 0x40, 0);
-						fVar48 = (local_228.Rotation.V[3] * 0.0 + fVar32 * local_228.Rotation.V[0]) * fVar27;
-						fVar49 = ((local_228.Rotation.V[0] + local_228.Rotation.V[0]) * local_228.Rotation.V[3]
-							+ local_228.Rotation.V[1] * 0.0) * fVar36;
-						fVar37 = fVar36 * (fVar32 * local_228.Rotation.V[0] - local_228.Rotation.V[3] * 0.0);
-						fVar39 = fVar27 * (local_228.Rotation.V[0] * 0.0 - fVar32 * local_228.Rotation.V[3]);
-						fVar25 = (float)((uint)((fVar53 - (fVar32 * local_228.Rotation.V[1] + fVar34)) * fVar38)
-							& uVar44);
-						fVar34 = (float)((uint)((fVar21 - (fVar34 + fVar34)) * fVar40) & uVar45);
-						fVar32 = fVar55 + fVar55;
-						fVar56 = fVar56 + fVar56;
-						fVar31 = (fVar54 + fVar54) * fVar54;
-						uVar29 = SUB164((undefined[16])GlobalVectorConstants::FloatOne.m128_u32, 0);
-						auVar23 = (undefined[16])GlobalVectorConstants::FloatOne >> 0x20;
-						fVar41 = (fVar57 * fVar56 + fVar54 * fVar32) * fVar50;
-						fVar42 = (fVar57 * (fVar54 + fVar54) + fVar55 * fVar56) * fVar51;
-						fVar35 = fVar51 * (fVar54 * fVar32 - fVar57 * fVar56);
-						fVar56 = fVar50 * (fVar54 * fVar56 - fVar57 * fVar32);
-						fVar32 = (float)((uint)((fVar53 - (fVar32 * fVar55 + fVar31)) * fVar33) & uVar44);
-						fVar54 = (float)((uint)((fVar21 - (fVar31 + fVar31)) * fVar52) & uVar45);
-						_local_518 = CONCAT412(fVar41 * fVar34 + fVar34 * 0.0 + fVar34 * 0.0 + fVar54 * fVar21,
-							CONCAT48(fVar41 * fVar49 +
-								SUB164(ZEXT1216(ZEXT812(0)) >> 0x40, 0) * fVar39 +
-								fVar25 * 0.0 + fVar54 * local_228.Translation.V[2],
-								CONCAT44(fVar41 * 0.0 + fVar48 * 0.0 + fVar56 * 0.0 +
-									fVar54 * local_228.Translation.V[1],
-									fVar41 * fVar37 + 0.0 + fVar56 * 0.0 +
-									fVar54 * local_228.Translation.V[0])));
-						_local_508 = CONCAT412(fVar34 * 0.0 + fVar35 * fVar34 + fVar34 * 0.0 + fVar54 * fVar21,
-							CONCAT48(fVar49 * 0.0 + fVar35 * fVar39 + fVar25 * 0.0 +
-								fVar54 * local_228.Translation.V[2],
-								CONCAT44(fVar35 * fVar48 + 0.0 + fVar42 * 0.0 +
-									fVar54 * local_228.Translation.V[1],
-									fVar37 * 0.0 + fVar35 * 0.0 + fVar42 * 0.0 +
-									fVar54 * local_228.Translation.V[0])));
-						_local_4f8 = CONCAT412(fVar34 * 0.0 + fVar34 * 0.0 + fVar34 * 0.0 + fVar54 * fVar21,
-							CONCAT48(fVar49 * 0.0 +
-								SUB164(ZEXT1216(ZEXT812(0)) >> 0x40, 0) * fVar39 +
-								fVar25 * 0.0 + fVar54 * local_228.Translation.V[2],
-								CONCAT44(fVar48 * 0.0 + 0.0 + fVar32 * 0.0 +
-									fVar54 * local_228.Translation.V[1],
-									fVar37 * 0.0 + 0.0 + fVar32 * 0.0 +
-									fVar54 * local_228.Translation.V[0])));
-						local_4e8 = CONCAT412(fVar24 * fVar34 + fVar22 * fVar34 + fVar34 * 0.0 + fVar21 * fVar21
-							, CONCAT48(fVar24 * fVar49 + fVar22 * fVar39 + fVar25 * 0.0 +
-								fVar21 * local_228.Translation.V[2],
-								CONCAT44(fVar24 * 0.0 + fVar22 * fVar48 + fVar26 * 0.0 +
-									fVar21 * local_228.Translation.V[1],
-									fVar24 * fVar37 + fVar22 * 0.0 + fVar26 * 0.0 +
-									fVar21 * local_228.Translation.V[0])));
-						_func__thiscall_void_float(local_518, 1e-08);
-						auVar4 = _local_518;
-						uVar28 = SUB164((undefined[16])GlobalVectorConstants::FloatMinusOne >> 0x20, 0);
-						fVar21 = (float)(-(uint)(SUB164((undefined[16])
-							GlobalVectorConstants::FloatZero.m128_f32, 0) <=
-							fVar50 * fVar27) &
-							(SUB164((undefined[16])GlobalVectorConstants::FloatMinusOne.m128_u32,
-								0) ^ uVar29) ^
-							SUB164((undefined[16])GlobalVectorConstants::FloatMinusOne.m128_u32, 0)
-							);
-						fVar22 = (float)(-(uint)(SUB164((undefined[16])GlobalVectorConstants::FloatZero >>
-							0x20, 0) <= fVar51 * fVar36) &
-							(uVar28 ^ SUB164(auVar23, 0)) ^ uVar28);
-						_local_518 = CONCAT124(stack0xfffffffffffffaec, local_518._0_4_ * fVar21);
-						local_518 = (undefined[8])
-							((unsigned long long)local_518 & 0xffffffff |
-								(unsigned long long)(uint)(local_518._4_4_ * fVar21) << 0x20);
-						_local_508 = CONCAT124(CONCAT84(uStack_500, local_508._4_4_ * fVar22),
-							local_508._0_4_ * fVar22);
-						local_4f8 = (undefined[8])CONCAT44(local_4f8._4_4_ * 0.0, local_4f8._0_4_ * 0.0);
-						_func__thiscall_undefined_FMatrix_ptr(&local_3c8, (FMatrix*)local_518);
-						pFVar13 = (FTransform*)local_1f8;
-						fVar54 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf.m128_f32, 0);
-						fVar55 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf >> 0x20, 0);
-						fVar56 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf >> 0x40, 0);
-						fVar57 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf >> 0x60, 0);
-						local_1d8 = CONCAT412(fVar52 * fVar40,
-							CONCAT48(fVar33 * fVar38, CONCAT44(fVar51 * fVar36, fVar50 * fVar27)
-							));
-						fVar21 = local_3c8 * local_3c8 + fStack_3c0 * fStack_3c0;
-						fVar22 = fStack_3c4 * fStack_3c4 + fStack_3bc * fStack_3bc;
-						fVar24 = fStack_3c0 * fStack_3c0 + local_3c8 * local_3c8;
-						fVar26 = fStack_3bc * fStack_3bc + fStack_3c4 * fStack_3c4;
-						fVar33 = fVar22 + fVar21;
-						fVar50 = fVar22 + 0.0;
-						fVar32 = fVar26 + fVar24;
-						fVar51 = fVar21 + fVar26;
-						auVar23 = rsqrtps(CONCAT412(fVar26, CONCAT48(fVar24, CONCAT44(fVar22, fVar21))),
-							CONCAT412(fVar51, CONCAT48(fVar32, CONCAT44(fVar50, fVar33))));
-						fVar32 = fVar32 * fVar56;
-						fVar21 = SUB164(auVar23, 0);
-						fVar22 = SUB164(auVar23 >> 0x20, 0);
-						fVar24 = SUB164(auVar23 >> 0x40, 0);
-						fVar26 = SUB164(auVar23 >> 0x60, 0);
-						fVar21 = (fVar54 - fVar21 * fVar21 * fVar33 * fVar54) * fVar21 + fVar21;
-						fVar22 = (fVar55 - fVar22 * fVar22 * fVar50 * fVar55) * fVar22 + fVar22;
-						fVar24 = (fVar56 - fVar24 * fVar24 * fVar32) * fVar24 + fVar24;
-						fVar26 = (fVar57 - fVar26 * fVar26 * fVar51 * fVar57) * fVar26 + fVar26;
-						local_1e8 = local_4e8 & (undefined[16])0xffffffffffffffff;
-						uVar28 = SUB164((undefined[16])GlobalVectorConstants::Float0001 >> 0x20, 0);
-						uVar29 = SUB164((undefined[16])GlobalVectorConstants::Float0001 >> 0x40, 0);
-						uVar30 = SUB164((undefined[16])GlobalVectorConstants::Float0001 >> 0x60, 0);
-						local_1f8 = CONCAT412(((uint)(((fVar57 - fVar26 * fVar26 * fVar51 * fVar57) * fVar26 +
-							fVar26) * fStack_3bc) ^ uVar30) & -(uint)(1e-08 <= fVar58)
-							^ uVar30, CONCAT48(((uint)(((fVar56 - fVar24 * fVar24 * fVar32) *
-								fVar24 + fVar24) * fStack_3c0) ^ uVar29
-								) & -(uint)(1e-08 <= fVar51) ^ uVar29,
-								CONCAT44(((uint)(((fVar55 - fVar22 * fVar22 *
-									fVar50 * fVar55) *
-									fVar22 + fVar22) * fStack_3c4)
-									^ uVar28) & -(uint)(1e-08 <= fVar50) ^
-									uVar28, ((uint)(((fVar54 - fVar21 *
-										fVar21 * fVar33 * fVar54) * fVar21 + fVar21) *
-										local_3c8) ^
-										SUB164((undefined[16])
-											GlobalVectorConstants::Float0001.m128_u32, 0
-										)) & -(uint)(1e-08 <= fVar33) ^
+				} else {
+					fLocal_15 = local_228.Rotation.V[1] + local_228.Rotation.V[1];
+					fVar34 = (local_228.Rotation.V[0] + local_228.Rotation.V[0]) * local_228.Rotation.V[0];
+					fLocal_3 = SUB164((undefined[16])GlobalVectorConstants::FloatOne >> 0x40, 0);
+					fVar48 = (local_228.Rotation.V[3] * 0.0 + fLocal_15 * local_228.Rotation.V[0]) * fLocal_9;
+					fVar49 = ((local_228.Rotation.V[0] + local_228.Rotation.V[0]) * local_228.Rotation.V[3]
+						+ local_228.Rotation.V[1] * 0.0) * fLocal_11;
+					fVar37 = fLocal_11 * (fLocal_15 * local_228.Rotation.V[0] - local_228.Rotation.V[3] * 0.0);
+					fVar39 = fLocal_9 * (local_228.Rotation.V[0] * 0.0 - fLocal_15 * local_228.Rotation.V[3]);
+					fVar25 = (float)((uint)((fLocal_3 - (fLocal_15 * local_228.Rotation.V[1] + fVar34)) * fLocal_0)
+						& uVar44);
+					fVar34 = (float)((uint)((fVar21 - (fVar34 + fVar34)) * fLocal_1) & uVar45);
+					fLocal_15 = fLocal_7 + fLocal_7;
+					fLocal_10 = fLocal_10 + fLocal_10;
+					fVar31 = (fLocal_6 + fLocal_6) * fLocal_6;
+					uVar29 = SUB164((undefined[16])GlobalVectorConstants::FloatOne.m128_u32, 0);
+					auVar23 = (undefined[16])GlobalVectorConstants::FloatOne >> 0x20;
+					fVar41 = (fLocal_8 * fLocal_10 + fLocal_6 * fLocal_15) * fLocal_16;
+					fVar42 = (fLocal_8 * (fLocal_6 + fLocal_6) + fLocal_7 * fLocal_10) * fLocal_4;
+					fVar35 = fLocal_4 * (fLocal_6 * fLocal_15 - fLocal_8 * fLocal_10);
+					fLocal_10 = fLocal_16 * (fLocal_6 * fLocal_10 - fLocal_8 * fLocal_15);
+					fLocal_15 = (float)((uint)((fLocal_3 - (fLocal_15 * fLocal_7 + fVar31)) * fLocal_17) & uVar44);
+					fLocal_6 = (float)((uint)((fVar21 - (fVar31 + fVar31)) * fLocal_5) & uVar45);
+					_local_518 = CONCAT412(fVar41 * fVar34 + fVar34 * 0.0 + fVar34 * 0.0 + fLocal_6 * fVar21,
+						CONCAT48(fVar41 * fVar49 +
+							SUB164(ZEXT1216(ZEXT812(0)) >> 0x40, 0) * fVar39 +
+							fVar25 * 0.0 + fLocal_6 * local_228.Translation.V[2],
+							CONCAT44(fVar41 * 0.0 + fVar48 * 0.0 + fLocal_10 * 0.0 +
+								fLocal_6 * local_228.Translation.V[1],
+								fVar41 * fVar37 + 0.0 + fLocal_10 * 0.0 +
+								fLocal_6 * local_228.Translation.V[0])));
+					_local_508 = CONCAT412(fVar34 * 0.0 + fVar35 * fVar34 + fVar34 * 0.0 + fLocal_6 * fVar21,
+						CONCAT48(fVar49 * 0.0 + fVar35 * fVar39 + fVar25 * 0.0 +
+							fLocal_6 * local_228.Translation.V[2],
+							CONCAT44(fVar35 * fVar48 + 0.0 + fVar42 * 0.0 +
+								fLocal_6 * local_228.Translation.V[1],
+								fVar37 * 0.0 + fVar35 * 0.0 + fVar42 * 0.0 +
+								fLocal_6 * local_228.Translation.V[0])));
+					_local_4f8 = CONCAT412(fVar34 * 0.0 + fVar34 * 0.0 + fVar34 * 0.0 + fLocal_6 * fVar21,
+						CONCAT48(fVar49 * 0.0 +
+							SUB164(ZEXT1216(ZEXT812(0)) >> 0x40, 0) * fVar39 +
+							fVar25 * 0.0 + fLocal_6 * local_228.Translation.V[2],
+							CONCAT44(fVar48 * 0.0 + 0.0 + fLocal_15 * 0.0 +
+								fLocal_6 * local_228.Translation.V[1],
+								fVar37 * 0.0 + 0.0 + fLocal_15 * 0.0 +
+								fLocal_6 * local_228.Translation.V[0])));
+					local_4e8 = CONCAT412(fLocal_13 * fVar34 + fLocal_12 * fVar34 + fVar34 * 0.0 + fVar21 * fVar21
+						, CONCAT48(fLocal_13 * fVar49 + fLocal_12 * fVar39 + fVar25 * 0.0 +
+							fVar21 * local_228.Translation.V[2],
+							CONCAT44(fLocal_13 * 0.0 + fLocal_12 * fVar48 + fLocal_14 * 0.0 +
+								fVar21 * local_228.Translation.V[1],
+								fLocal_13 * fVar37 + fLocal_12 * 0.0 + fLocal_14 * 0.0 +
+								fVar21 * local_228.Translation.V[0])));
+					_func__thiscall_void_float(local_518, 1e-08);
+					auVar4 = _local_518;
+					uVar28 = SUB164((undefined[16])GlobalVectorConstants::FloatMinusOne >> 0x20, 0);
+					fVar21 = (float)(-(uint)(SUB164((undefined[16])
+						GlobalVectorConstants::FloatZero.m128_f32, 0) <=
+						fLocal_16 * fLocal_9) &
+						(SUB164((undefined[16])GlobalVectorConstants::FloatMinusOne.m128_u32,
+							0) ^ uVar29) ^
+						SUB164((undefined[16])GlobalVectorConstants::FloatMinusOne.m128_u32, 0)
+						);
+					fLocal_12 = (float)(-(uint)(SUB164((undefined[16])GlobalVectorConstants::FloatZero >>
+						0x20, 0) <= fLocal_4 * fLocal_11) &
+						(uVar28 ^ SUB164(auVar23, 0)) ^ uVar28);
+					_local_518 = CONCAT124(stack0xfffffffffffffaec, local_518._0_4_ * fVar21);
+					local_518 = (undefined[8])
+						((unsigned long long)local_518 & 0xffffffff |
+							(unsigned long long)(uint)(local_518._4_4_ * fVar21) << 0x20);
+					_local_508 = CONCAT124(CONCAT84(uStack_500, local_508._4_4_ * fLocal_12),
+						local_508._0_4_ * fLocal_12);
+					local_4f8 = (undefined[8])CONCAT44(local_4f8._4_4_ * 0.0, local_4f8._0_4_ * 0.0);
+					_func__thiscall_undefined_fLocal_ptr(&local_3c8, (FMatrix*)local_518);
+					someTransform = (FTransform*)local_1f8;
+					fLocal_6 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf.m128_f32, 0);
+					fLocal_7 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf >> 0x20, 0);
+					fLocal_10 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf >> 0x40, 0);
+					fLocal_8 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf >> 0x60, 0);
+					local_1d8 = CONCAT412(fLocal_5 * fLocal_1,
+						CONCAT48(fLocal_17 * fLocal_0, CONCAT44(fLocal_4 * fLocal_11, fLocal_16 * fLocal_9)
+						));
+					fVar21 = local_3c8 * local_3c8 + fStack_3c0 * fStack_3c0;
+					fLocal_12 = fStack_3c4 * fStack_3c4 + fStack_3bc * fStack_3bc;
+					fLocal_13 = fStack_3c0 * fStack_3c0 + local_3c8 * local_3c8;
+					fLocal_14 = fStack_3bc * fStack_3bc + fStack_3c4 * fStack_3c4;
+					fLocal_17 = fLocal_12 + fVar21;
+					fLocal_16 = fLocal_12 + 0.0;
+					fLocal_15 = fLocal_14 + fLocal_13;
+					fLocal_4 = fVar21 + fLocal_14;
+					auVar23 = rsqrtps(CONCAT412(fLocal_14, CONCAT48(fLocal_13, CONCAT44(fLocal_12, fVar21))),
+						CONCAT412(fLocal_4, CONCAT48(fLocal_15, CONCAT44(fLocal_16, fLocal_17))));
+					fLocal_15 = fLocal_15 * fLocal_10;
+					fVar21 = SUB164(auVar23, 0);
+					fLocal_12 = SUB164(auVar23 >> 0x20, 0);
+					fLocal_13 = SUB164(auVar23 >> 0x40, 0);
+					fLocal_14 = SUB164(auVar23 >> 0x60, 0);
+					fVar21 = (fLocal_6 - fVar21 * fVar21 * fLocal_17 * fLocal_6) * fVar21 + fVar21;
+					fLocal_12 = (fLocal_7 - fLocal_12 * fLocal_12 * fLocal_16 * fLocal_7) * fLocal_12 + fLocal_12;
+					fLocal_13 = (fLocal_10 - fLocal_13 * fLocal_13 * fLocal_15) * fLocal_13 + fLocal_13;
+					fLocal_14 = (fLocal_8 - fLocal_14 * fLocal_14 * fLocal_4 * fLocal_8) * fLocal_14 + fLocal_14;
+					local_1e8 = local_4e8 & (undefined[16])0xffffffffffffffff;
+					uVar28 = SUB164((undefined[16])GlobalVectorConstants::Float0001 >> 0x20, 0);
+					uVar29 = SUB164((undefined[16])GlobalVectorConstants::Float0001 >> 0x40, 0);
+					uVar30 = SUB164((undefined[16])GlobalVectorConstants::Float0001 >> 0x60, 0);
+					local_1f8 = CONCAT412(((uint)(((fLocal_8 - fLocal_14 * fLocal_14 * fLocal_4 * fLocal_8) * fLocal_14 +
+						fLocal_14) * fStack_3bc) ^ uVar30) & -(uint)(1e-08 <= fLocal_2)
+						^ uVar30, CONCAT48(((uint)(((fLocal_10 - fLocal_13 * fLocal_13 * fLocal_15) *
+							fLocal_13 + fLocal_13) * fStack_3c0) ^ uVar29
+							) & -(uint)(1e-08 <= fLocal_4) ^ uVar29,
+							CONCAT44(((uint)(((fLocal_7 - fLocal_12 * fLocal_12 *
+								fLocal_16 * fLocal_7) *
+								fLocal_12 + fLocal_12) * fStack_3c4)
+								^ uVar28) & -(uint)(1e-08 <= fLocal_16) ^
+								uVar28, ((uint)(((fLocal_6 - fVar21 *
+									fVar21 * fLocal_17 * fLocal_6) * fVar21 + fVar21) *
+									local_3c8) ^
 									SUB164((undefined[16])
 										GlobalVectorConstants::Float0001.m128_u32, 0
-									)))
-						);
-					}
+									)) & -(uint)(1e-08 <= fLocal_17) ^
+								SUB164((undefined[16])
+									GlobalVectorConstants::Float0001.m128_u32, 0
+								)))
+					);
 				}
-				AActor::SetActorTransform((AActor*)this, pFVar13, false, (FHitResult*)0x0, None);
-				goto LAB_180511897;
 			}
+				
+			SetActorTransform(*someTransform);
+			goto LAB_180511897;
 		}
 
 		// UOBJ //
 		hitUObjRef = (UObject*)&(hitResult.Actor);
-		if (hitUObjRef != NULL) {
-			hitUObjRef = FWeakObjectPtr::Get((FWeakObjectPtr*)hitResult.Actor);
-			hitClass = *(UClass**)&hitUObjRef->field_0x10;
-			pUVar15 = UFGPipeAttachmentSnapTargetInterface::GetPrivateStaticClass();
-			bool valid = UClass::ImplementsInterface(hitClass, pUVar15);
-			if (valid) {
-				local_598.Z = *(float*)(hitResult.Location).field_0x8;
-				local_598._0_8_ = *(undefined8*)hitResult.Location;
-				local_5b8._0_8_ = *(undefined8*)ForwardVector_exref;
-				local_5b8.Z = *(float*)(ForwardVector_exref + 8);
-				TrySnapToConnection(this, 300.0, &local_598, &local_5b8);
-				if (this->mSnappedConnectionComponent != (UFGPipeConnectionComponent*)0x0) {
-					if (this->mSnappedConnectionComponent->field_0x200 == '\x03') {
-						if ((*(float*)hitResult.Location - local_598.X) * local_5b8.X +
-							local_5b8.Y * (*(float*)(hitResult.Location).field_0x4 - local_598.Y) +
-							(*(float*)(hitResult.Location).field_0x8 - local_598.Z) * local_5b8.Z < 0.0) {
-							fVar21 = 1.0;
-						}
-						else {
-							fVar21 = -1.0;
-						}
-						local_5b8.Z = local_5b8.Z * fVar21;
-						local_5b8._0_8_ = CONCAT44(local_5b8.Y * fVar21, local_5b8.X * fVar21);
+		if (hitUObjRef != NULL && hitUObjRef->ImplementsInterface(UFGPipeAttachmentSnapTargetInterface)) {
+
+			local_598.Z = *(float*)(hitResult.Location).field_0x8;
+			local_598._0_8_ = *(undefined8*)hitResult.Location;
+
+			local_5b8._0_8_ = *(undefined8*)ForwardVector_exref;
+			local_5b8.Z = *(float*)(ForwardVector_exref + 8);
+
+			TrySnapToConnection(this, 300.0, &local_598, &local_5b8);
+
+			if (this->mSnappedConnectionComponent != (UFGPipeConnectionComponent*)0x0) {
+				if (this->mSnappedConnectionComponent->field_0x200 == '\x03') {
+					if ((*(float*)hitResult.Location - local_598.X) * local_5b8.X +
+						local_5b8.Y * (*(float*)(hitResult.Location).field_0x4 - local_598.Y) +
+						(*(float*)(hitResult.Location).field_0x8 - local_598.Z) * local_5b8.Z < 0.0) {
+						fVar21 = 1.0;
+					} else {
+						fVar21 = -1.0;
 					}
-					pFVar10 = (FMatrix*)FRotationMatrix::MakeFromX(&local_2a8, (FVector*)&local_5b8);
-					FMatrix::Rotator(pFVar10, &local_3e8);
-					pcVar2 = OneVector_exref;
-					FRotator::Quaternion(&local_3e8, &local_3b8);
-					fVar22 = local_598.Z;
-					local_410 = &this->mPipeConnectionComponents;
-					fVar24 = (float)*(undefined8*)pcVar2;
-					fVar26 = (float)((unsigned long long) * (undefined8*)pcVar2 >> 0x20);
-					fVar32 = (float)local_598._0_8_;
-					fVar33 = (float)((unsigned long long)local_598._0_8_ >> 0x20);
-					fVar21 = *(float*)(pcVar2 + 8);
-					auVar3 = *(undefined(*)[12])pcVar2;
-					local_568[0] = this->mSnapConnectionIndex;
-					uVar28 = 0;
-					if ((int)local_568[0] < (this->mPipeConnectionComponents).ArrayNum) {
-						uVar28 = ~local_568[0] >> 0x1f;
-					}
-					if (uVar28 == 0) {
-						local_418 = local_568;
-						_func__cdecl_void_<lambda_e564da29fc75c0aef1975a3dea611db9>_ptr
-						((<lambda_e564da29fc75c0aef1975a3dea611db9> *) & local_418);
-						pcVar2 = (code*)swi(3);
-						uVar6 = (*pcVar2)();
-						return (bool)uVar6;
-					}
-					sceneComponent = *(USceneComponent**)
-						((local_410->AllocatorInstance).Data + (long long)(int)local_568[0] * 8);
-					pFVar13 = USceneComponent::GetRelativeTransform(sceneComponent, &local_168);
-					uVar28 = SUB164((undefined[16])GlobalVectorConstants::SignMask >> 0x20, 0);
-					uVar29 = SUB164((undefined[16])GlobalVectorConstants::SignMask >> 0x40, 0);
-					uVar30 = SUB164((undefined[16])GlobalVectorConstants::SignMask >> 0x60, 0);
-					fVar55 = SUB164((undefined[16])GlobalVectorConstants::SmallNumber >> 0x20, 0);
-					fVar56 = SUB164((undefined[16])GlobalVectorConstants::SmallNumber >> 0x60, 0);
-					uVar43 = SUB164((undefined[16])GlobalVectorConstants::XYZMask >> 0x20, 0);
-					uVar44 = SUB164((undefined[16])GlobalVectorConstants::XYZMask >> 0x40, 0);
-					uVar45 = SUB164((undefined[16])GlobalVectorConstants::XYZMask >> 0x60, 0);
-					auVar23 = *(undefined(*)[16])(pFVar13->Scale3D).V;
-					fVar57 = SUB164(auVar23, 0);
-					fVar27 = SUB164(auVar23 >> 0x20, 0);
-					fVar36 = SUB164(auVar23 >> 0x40, 0);
-					fVar51 = (float)((uint)fVar57 &
-						SUB164((undefined[16])GlobalVectorConstants::SignMask.m128_u32, 0));
-					fVar52 = (float)((uint)fVar27 & uVar28);
-					fVar54 = (float)(SUB164(auVar23 >> 0x60, 0) & uVar30);
-					iVar18 = movmskps((int)sceneComponent,
-						CONCAT412(-(uint)(fVar56 < in_xmmTmp2_Dd),
-							CONCAT48(-(uint)(SUB164((undefined[16])
-								GlobalVectorConstants::SmallNumber >>
-								0x40, 0) < fVar54),
-								CONCAT44(-(uint)(fVar55 < fVar52),
-									-(uint)(SUB164((undefined[16])
-										GlobalVectorConstants::
-										SmallNumber.m128_f32, 0) <
-										fVar51)))));
-					fVar50 = SUB164((undefined[16])GlobalVectorConstants::FloatOne >> 0x60, 0);
-					if (iVar18 == 0) {
-						fVar38 = *(float*)Identity_exref;
-						fVar40 = *(float*)(Identity_exref + 4);
-						fVar58 = *(float*)(Identity_exref + 8);
-						fVar53 = *(float*)(Identity_exref + 0xc);
-						fVar51 = *(float*)(Identity_exref + 0x10);
-						fVar52 = *(float*)(Identity_exref + 0x14);
-						fVar54 = *(float*)(Identity_exref + 0x18);
-						fVar55 = *(float*)(Identity_exref + 0x1c);
-						fVar57 = *(float*)(Identity_exref + 0x20);
-						fVar27 = *(float*)(Identity_exref + 0x24);
-						fVar56 = *(float*)(Identity_exref + 0x28);
-						fVar36 = *(float*)(Identity_exref + 0x2c);
-						pFVar13 = (FTransform*)Identity_exref;
-					}
-					else {
-						fVar38 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK.m128_f32, 0) *
-							(pFVar13->Rotation).V[0];
-						fVar40 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK >> 0x20, 0) *
-							(pFVar13->Rotation).V[1];
-						fVar58 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK >> 0x40, 0) *
-							(pFVar13->Rotation).V[2];
-						fVar53 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK >> 0x60, 0) *
-							(pFVar13->Rotation).V[3];
-						auVar23 = rcpps(CONCAT412(fVar54, CONCAT48((uint)fVar36 & uVar29, CONCAT44(fVar52, fVar51))
-						), CONCAT412(fVar50, SUB1612(auVar23, 0)));
-						fVar51 = SUB164(auVar23, 0);
-						fVar52 = SUB164(auVar23 >> 0x20, 0);
-						fVar54 = SUB164(auVar23 >> 0x40, 0);
-						fVar25 = SUB164(auVar23 >> 0x60, 0);
-						fVar51 = (fVar51 + fVar51) - fVar51 * fVar51 * fVar57;
-						fVar52 = (fVar52 + fVar52) - fVar52 * fVar52 * fVar27;
-						fVar54 = (fVar54 + fVar54) - fVar54 * fVar54 * fVar36;
-						fVar25 = (fVar25 + fVar25) - fVar25 * fVar25 * fVar50;
-						fVar51 = (fVar51 + fVar51) - fVar51 * fVar51 * fVar57;
-						fVar52 = (fVar52 + fVar52) - fVar52 * fVar52 * fVar27;
-						fVar54 = (fVar54 + fVar54) - fVar54 * fVar54 * fVar36;
-						fVar25 = (fVar25 + fVar25) - fVar25 * fVar25 * fVar50;
-						fVar57 = (float)((-(uint)((float)((uint)fVar57 &
+					local_5b8.Z = local_5b8.Z * fVar21;
+					local_5b8._0_8_ = CONCAT44(local_5b8.Y * fVar21, local_5b8.X * fVar21);
+				}
+				someMatrix = (FMatrix*)FRotationMatrix::MakeFromX(&local_2a8, (FVector*)&local_5b8);
+				local_3e8 = someMatrix->Rotator();
+				pcVar2 = OneVector_exref;
+				FRotator::Quaternion(&local_3e8, &local_3b8);
+				fLocal_12 = local_598.Z;
+				local_410 = &this->mPipeConnectionComponents;
+				fLocal_13 = (float)*(undefined8*)pcVar2;
+				fLocal_14 = (float)((unsigned long long) * (undefined8*)pcVar2 >> 0x20);
+				fLocal_15 = (float)local_598._0_8_;
+				fLocal_17 = (float)((unsigned long long)local_598._0_8_ >> 0x20);
+				fVar21 = *(float*)(pcVar2 + 8);
+				auVar3 = *(undefined(*)[12])pcVar2;
+
+				unsigned int snapIndex = this->mSnapConnectionIndex;
+				uVar28 = 0;
+				if (snapIndex < mPipeConnectionComponents.Num()) {
+					uVar28 = ~snapIndex >> 0x1f;
+				}
+
+				if (uVar28 == 0) {
+					local_418 = snapIndex;
+					_func__cdecl_void_<lambda_e564da29fc75c0aef1975a3dea611db9>_ptr((<lambda_e564da29fc75c0aef1975a3dea611db9> *) & local_418);
+					pcVar2 = (code*)swi(3);
+					uVar6 = (*pcVar2)();
+					return (bool)uVar6;
+				}
+
+				sceneComponent = *(USceneComponent**)((local_410->AllocatorInstance).Data + snapIndex * 8);
+				someTransform = USceneComponent::GetRelativeTransform(sceneComponent, &local_168);
+
+				uVar28 = SUB164((undefined[16])GlobalVectorConstants::SignMask >> 0x20, 0);
+				uVar29 = SUB164((undefined[16])GlobalVectorConstants::SignMask >> 0x40, 0);
+				uVar30 = SUB164((undefined[16])GlobalVectorConstants::SignMask >> 0x60, 0);
+
+				fLocal_7 = SUB164((undefined[16])GlobalVectorConstants::SmallNumber >> 0x20, 0);
+				fLocal_10 = SUB164((undefined[16])GlobalVectorConstants::SmallNumber >> 0x60, 0);
+
+				uVar43 = SUB164((undefined[16])GlobalVectorConstants::XYZMask >> 0x20, 0);
+				uVar44 = SUB164((undefined[16])GlobalVectorConstants::XYZMask >> 0x40, 0);
+				uVar45 = SUB164((undefined[16])GlobalVectorConstants::XYZMask >> 0x60, 0);
+
+				auVar23 = *(undefined(*)[16])(someTransform->Scale3D).V;
+
+				fLocal_8 = SUB164(auVar23, 0);
+				fLocal_9 = SUB164(auVar23 >> 0x20, 0);
+				fLocal_11 = SUB164(auVar23 >> 0x40, 0);
+
+				fLocal_4 = (float)((uint)fLocal_8 & SUB164((undefined[16])GlobalVectorConstants::SignMask.m128_u32, 0));
+				fLocal_5 = (float)((uint)fLocal_9 & uVar28);
+				fLocal_6 = (float)(SUB164(auVar23 >> 0x60, 0) & uVar30);
+
+				//Extract Packed Single-Precision Floating-Point Sign Mask
+				iVar18 = movmskps((int)sceneComponent,
+					CONCAT412(-(uint)(fLocal_10 < in_xmmTmp2_Dd),
+						CONCAT48(-(uint)(SUB164((undefined[16])
+							GlobalVectorConstants::SmallNumber >>
+							0x40, 0) < fLocal_6),
+							CONCAT44(-(uint)(fLocal_7 < fLocal_5),
+								-(uint)(SUB164((undefined[16])
+									GlobalVectorConstants::
+									SmallNumber.m128_f32, 0) <
+									fLocal_4)))));
+
+				fLocal_16 = SUB164((undefined[16])GlobalVectorConstants::FloatOne >> 0x60, 0);
+				if (iVar18 == 0) {
+					fLocal_0 = *(float*)Identity_exref;
+					fLocal_1 = *(float*)(Identity_exref + 4);
+					fLocal_2 = *(float*)(Identity_exref + 8);
+					fLocal_3 = *(float*)(Identity_exref + 0xc);
+					fLocal_4 = *(float*)(Identity_exref + 0x10);
+					fLocal_5 = *(float*)(Identity_exref + 0x14);
+					fLocal_6 = *(float*)(Identity_exref + 0x18);
+					fLocal_7 = *(float*)(Identity_exref + 0x1c);
+					fLocal_8 = *(float*)(Identity_exref + 0x20);
+					fLocal_9 = *(float*)(Identity_exref + 0x24);
+					fLocal_10 = *(float*)(Identity_exref + 0x28);
+					fLocal_11 = *(float*)(Identity_exref + 0x2c);
+					someTransform = (FTransform*)Identity_exref;
+				} else {
+					fLocal_0 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK.m128_f32, 0) * (someTransform->Rotation).V[0];
+					fLocal_1 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK >> 0x20, 0) * (someTransform->Rotation).V[1];
+					fLocal_2 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK >> 0x40, 0) * (someTransform->Rotation).V[2];
+					fLocal_3 = SUB164((undefined[16])GlobalVectorConstants::QINV_SIGN_MASK >> 0x60, 0) * (someTransform->Rotation).V[3];
+					auVar23 = rcpps(CONCAT412(fLocal_6, CONCAT48((uint)fLocal_11 & uVar29, CONCAT44(fLocal_5, fLocal_4))), CONCAT412(fLocal_16, SUB1612(auVar23, 0)));
+
+					fLocal_4 = SUB164(auVar23, 0);
+					fLocal_5 = SUB164(auVar23 >> 0x20, 0);
+					fLocal_6 = SUB164(auVar23 >> 0x40, 0);
+					fVar25 = SUB164(auVar23 >> 0x60, 0);
+
+					fLocal_4 = (fLocal_4 + fLocal_4) - fLocal_4 * fLocal_4 * fLocal_8;
+					fLocal_5 = (fLocal_5 + fLocal_5) - fLocal_5 * fLocal_5 * fLocal_9;
+					fLocal_6 = (fLocal_6 + fLocal_6) - fLocal_6 * fLocal_6 * fLocal_11;
+					fVar25 = (fVar25 + fVar25) - fVar25 * fVar25 * fLocal_16;
+
+					fLocal_4 = (fLocal_4 + fLocal_4) - fLocal_4 * fLocal_4 * fLocal_8;
+					fLocal_5 = (fLocal_5 + fLocal_5) - fLocal_5 * fLocal_5 * fLocal_9;
+					fLocal_6 = (fLocal_6 + fLocal_6) - fLocal_6 * fLocal_6 * fLocal_11;
+					fVar25 = (fVar25 + fVar25) - fVar25 * fVar25 * fLocal_16;
+
+					fLocal_8 = (float)((-(uint)((float)((uint)fLocal_8 &
+						SUB164((undefined[16])
+							GlobalVectorConstants::SignMask.m128_u32, 0)) <=
+						SUB164((undefined[16])
+							GlobalVectorConstants::SmallNumber.m128_f32, 0)) &
+						(uint)fLocal_4 ^ (uint)fLocal_4) &
+						SUB164((undefined[16])GlobalVectorConstants::XYZMask.m128_u32, 0));
+					fLocal_9 = (float)((-(uint)((float)((uint)fLocal_9 & uVar28) <= fLocal_7) & (uint)fLocal_5 ^
+						(uint)fLocal_5) & uVar43);
+					fLocal_10 = (float)((-(uint)((float)((uint)fLocal_11 & uVar29) <= fLocal_10) & (uint)fLocal_6 ^
+						(uint)fLocal_6) & uVar44);
+					fLocal_11 = (float)((-(uint)((float)((uint)fLocal_16 & uVar30) <= in_xmmTmp2_Dd) &
+						(uint)fVar25 ^ (uint)fVar25) & uVar45);
+
+					fLocal_4 = fLocal_8 * (someTransform->Translation).V[0];
+					fLocal_5 = fLocal_9 * (someTransform->Translation).V[1];
+					fVar31 = fLocal_10 * (someTransform->Translation).V[2];
+					fVar35 = fLocal_11 * (someTransform->Translation).V[3];
+					fLocal_6 = fLocal_1 * 0.0 - fLocal_5 * 0.0;
+					fLocal_7 = fLocal_4 * fLocal_2 - fVar31 * fLocal_0;
+					fVar25 = fLocal_5 * fLocal_0 - fLocal_4 * fLocal_1;
+					fVar34 = fVar35 * fLocal_3 - fVar35 * fLocal_3;
+					fLocal_6 = fLocal_6 + fLocal_6;
+					fLocal_7 = fLocal_7 + fLocal_7;
+					fVar25 = fVar25 + fVar25;
+					fVar34 = fVar34 + fVar34;
+					fLocal_4 = (float)((uint)(0.0 - ((fLocal_1 * 0.0 - fLocal_7 * 0.0) + fLocal_3 * fLocal_6 + fLocal_4)
+						) &
+						SUB164((undefined[16])GlobalVectorConstants::XYZMask.m128_u32, 0));
+					fLocal_5 = (float)((uint)(0.0 - ((fLocal_6 * fLocal_2 - fVar25 * fLocal_0) +
+						fLocal_3 * fLocal_7 + fLocal_5)) & uVar43);
+					fLocal_6 = (float)((uint)(0.0 - ((fLocal_7 * fLocal_0 - fLocal_6 * fLocal_1) +
+						fLocal_3 * fVar25 + fVar31)) & uVar44);
+					fLocal_7 = (float)((uint)(0.0 - ((fVar34 * fLocal_3 - fVar34 * fLocal_3) +
+						fLocal_3 * fVar34 + fVar35)) & uVar45);
+				}
+				auVar23 = minps(CONCAT412(fLocal_11, CONCAT48(fLocal_10, CONCAT44(fLocal_9, fLocal_8))),
+					ZEXT1216(auVar3));
+				fVar25 = SUB164((undefined[16])GlobalVectorConstants::FloatZero >> 0x60, 0);
+				iVar18 = movmskps((int)someTransform,
+					CONCAT412(-(uint)(SUB164(auVar23 >> 0x60, 0) < fVar25),
+						CONCAT48(-(uint)(SUB164(auVar23 >> 0x40, 0) <
 							SUB164((undefined[16])
-								GlobalVectorConstants::SignMask.m128_u32, 0)) <=
-							SUB164((undefined[16])
-								GlobalVectorConstants::SmallNumber.m128_f32, 0)) &
-							(uint)fVar51 ^ (uint)fVar51) &
-							SUB164((undefined[16])GlobalVectorConstants::XYZMask.m128_u32, 0));
-						fVar27 = (float)((-(uint)((float)((uint)fVar27 & uVar28) <= fVar55) & (uint)fVar52 ^
-							(uint)fVar52) & uVar43);
-						fVar56 = (float)((-(uint)((float)((uint)fVar36 & uVar29) <= fVar56) & (uint)fVar54 ^
-							(uint)fVar54) & uVar44);
-						fVar36 = (float)((-(uint)((float)((uint)fVar50 & uVar30) <= in_xmmTmp2_Dd) &
-							(uint)fVar25 ^ (uint)fVar25) & uVar45);
-						fVar51 = fVar57 * (pFVar13->Translation).V[0];
-						fVar52 = fVar27 * (pFVar13->Translation).V[1];
-						fVar31 = fVar56 * (pFVar13->Translation).V[2];
-						fVar35 = fVar36 * (pFVar13->Translation).V[3];
-						fVar54 = fVar40 * 0.0 - fVar52 * 0.0;
-						fVar55 = fVar51 * fVar58 - fVar31 * fVar38;
-						fVar25 = fVar52 * fVar38 - fVar51 * fVar40;
-						fVar34 = fVar35 * fVar53 - fVar35 * fVar53;
-						fVar54 = fVar54 + fVar54;
-						fVar55 = fVar55 + fVar55;
-						fVar25 = fVar25 + fVar25;
-						fVar34 = fVar34 + fVar34;
-						fVar51 = (float)((uint)(0.0 - ((fVar40 * 0.0 - fVar55 * 0.0) + fVar53 * fVar54 + fVar51)
-							) &
-							SUB164((undefined[16])GlobalVectorConstants::XYZMask.m128_u32, 0));
-						fVar52 = (float)((uint)(0.0 - ((fVar54 * fVar58 - fVar25 * fVar38) +
-							fVar53 * fVar55 + fVar52)) & uVar43);
-						fVar54 = (float)((uint)(0.0 - ((fVar55 * fVar38 - fVar54 * fVar40) +
-							fVar53 * fVar25 + fVar31)) & uVar44);
-						fVar55 = (float)((uint)(0.0 - ((fVar34 * fVar53 - fVar34 * fVar53) +
-							fVar53 * fVar34 + fVar35)) & uVar45);
-					}
-					auVar23 = minps(CONCAT412(fVar36, CONCAT48(fVar56, CONCAT44(fVar27, fVar57))),
-						ZEXT1216(auVar3));
-					fVar25 = SUB164((undefined[16])GlobalVectorConstants::FloatZero >> 0x60, 0);
-					iVar18 = movmskps((int)pFVar13,
-						CONCAT412(-(uint)(SUB164(auVar23 >> 0x60, 0) < fVar25),
-							CONCAT48(-(uint)(SUB164(auVar23 >> 0x40, 0) <
+								GlobalVectorConstants::FloatZero >>
+								0x40, 0)),
+							CONCAT44(-(uint)(SUB164(auVar23 >> 0x20, 0) <
 								SUB164((undefined[16])
-									GlobalVectorConstants::FloatZero >>
-									0x40, 0)),
-								CONCAT44(-(uint)(SUB164(auVar23 >> 0x20, 0) <
+									GlobalVectorConstants::
+									FloatZero >> 0x20, 0)),
+								-(uint)(SUB164(auVar23, 0) <
 									SUB164((undefined[16])
 										GlobalVectorConstants::
-										FloatZero >> 0x20, 0)),
-									-(uint)(SUB164(auVar23, 0) <
-										SUB164((undefined[16])
-											GlobalVectorConstants::
-											FloatZero.m128_f32, 0))))));
-					if (iVar18 == 0) {
-						fVar51 = fVar51 * fVar24;
-						fVar52 = fVar52 * fVar26;
-						fVar55 = fVar55 * 0.0;
-						local_1a8 = CONCAT412(fVar36 * 0.0,
-							CONCAT48(fVar56 * fVar21, CONCAT44(fVar27 * fVar26, fVar57 * fVar24)
-							));
-						local_1c8 = CONCAT412(fVar38 * local_3b8.X *
-							SUB164((undefined[16])GlobalVectorConstants::QMULTI_SIGN_MASK0
-								>> 0x60, 0) + local_3b8.W * fVar53 +
-							fVar40 * local_3b8.Y *
-							SUB164((undefined[16])GlobalVectorConstants::QMULTI_SIGN_MASK1
-								>> 0x60, 0) +
-							SUB164((undefined[16])GlobalVectorConstants::QMULTI_SIGN_MASK2
-								>> 0x60, 0) * 0.0,
-							CONCAT48(fVar40 * local_3b8.X *
+										FloatZero.m128_f32, 0))))));
+				if (iVar18 == 0) {
+					fLocal_4 = fLocal_4 * fLocal_13;
+					fLocal_5 = fLocal_5 * fLocal_14;
+					fLocal_7 = fLocal_7 * 0.0;
+					local_1a8 = CONCAT412(fLocal_11 * 0.0,
+						CONCAT48(fLocal_10 * fVar21, CONCAT44(fLocal_9 * fLocal_14, fLocal_8 * fLocal_13)
+						));
+					local_1c8 = CONCAT412(fLocal_0 * local_3b8.X *
+						SUB164((undefined[16])GlobalVectorConstants::QMULTI_SIGN_MASK0
+							>> 0x60, 0) + local_3b8.W * fLocal_3 +
+						fLocal_1 * local_3b8.Y *
+						SUB164((undefined[16])GlobalVectorConstants::QMULTI_SIGN_MASK1
+							>> 0x60, 0) +
+						SUB164((undefined[16])GlobalVectorConstants::QMULTI_SIGN_MASK2
+							>> 0x60, 0) * 0.0,
+						CONCAT48(fLocal_1 * local_3b8.X *
+							SUB164((undefined[16])
+								GlobalVectorConstants::QMULTI_SIGN_MASK0 >> 0x40, 0
+							) + local_3b8.W * fLocal_2 +
+							fLocal_0 * local_3b8.Y *
+							SUB164((undefined[16])
+								GlobalVectorConstants::QMULTI_SIGN_MASK1 >> 0x40, 0
+							) + fLocal_3 * 0.0 *
+							SUB164((undefined[16])
+								GlobalVectorConstants::QMULTI_SIGN_MASK2
+								>> 0x40, 0),
+							CONCAT44(local_3b8.X * 0.0 *
 								SUB164((undefined[16])
-									GlobalVectorConstants::QMULTI_SIGN_MASK0 >> 0x40, 0
-								) + local_3b8.W * fVar58 +
-								fVar38 * local_3b8.Y *
+									GlobalVectorConstants::QMULTI_SIGN_MASK0
+									>> 0x20, 0) + local_3b8.W * fLocal_1 +
+								fLocal_3 * local_3b8.Y *
 								SUB164((undefined[16])
-									GlobalVectorConstants::QMULTI_SIGN_MASK1 >> 0x40, 0
-								) + fVar53 * 0.0 *
+									GlobalVectorConstants::QMULTI_SIGN_MASK1
+									>> 0x20, 0) +
+								fLocal_0 * local_3b8.Z *
 								SUB164((undefined[16])
 									GlobalVectorConstants::QMULTI_SIGN_MASK2
-									>> 0x40, 0),
-								CONCAT44(local_3b8.X * 0.0 *
-									SUB164((undefined[16])
-										GlobalVectorConstants::QMULTI_SIGN_MASK0
-										>> 0x20, 0) + local_3b8.W * fVar40 +
-									fVar53 * local_3b8.Y *
-									SUB164((undefined[16])
-										GlobalVectorConstants::QMULTI_SIGN_MASK1
-										>> 0x20, 0) +
-									fVar38 * local_3b8.Z *
-									SUB164((undefined[16])
-										GlobalVectorConstants::QMULTI_SIGN_MASK2
-										>> 0x20, 0),
-									fVar53 * local_3b8.X *
-									SUB164((undefined[16])
-										GlobalVectorConstants::QMULTI_SIGN_MASK0.
-										m128_f32, 0) + local_3b8.W * fVar38 +
-									fVar58 * local_3b8.Y *
-									SUB164((undefined[16])
-										GlobalVectorConstants::QMULTI_SIGN_MASK1.
-										m128_f32, 0) +
-									fVar40 * local_3b8.Z *
-									SUB164((undefined[16])
-										GlobalVectorConstants::QMULTI_SIGN_MASK2.
-										m128_f32, 0))));
-						fVar24 = local_3b8.Y * 0.0 - fVar52 * 0.0;
-						fVar26 = fVar51 * 0.0 - fVar54 * fVar21 * local_3b8.X;
-						fVar50 = fVar52 * local_3b8.X - fVar51 * local_3b8.Y;
-						fVar56 = fVar55 * local_3b8.W - fVar55 * local_3b8.W;
-						fVar24 = fVar24 + fVar24;
-						fVar26 = fVar26 + fVar26;
-						fVar50 = fVar50 + fVar50;
-						fVar56 = fVar56 + fVar56;
-						local_1b8 = CONCAT412((fVar56 * local_3b8.W - fVar56 * local_3b8.W) +
-							local_3b8.W * fVar56 + fVar55 + 0.0,
-							CONCAT48((fVar26 * local_3b8.X - fVar24 * local_3b8.Y) +
-								local_3b8.W * fVar50 + fVar54 * fVar21 + fVar22,
-								CONCAT44((fVar24 * 0.0 - fVar50 * local_3b8.X) +
-									local_3b8.W * fVar26 + fVar52 + fVar33,
-									(fVar50 * local_3b8.Y - fVar26 * 0.0) +
-									local_3b8.W * fVar24 + fVar51 + fVar32)));
-					}
-					else {
-						fVar55 = local_3b8.Y + local_3b8.Y;
-						local_3b8.Z = local_3b8.Z + local_3b8.Z;
-						fVar35 = (local_3b8.X + local_3b8.X) * local_3b8.X;
-						fVar34 = SUB164((undefined[16])GlobalVectorConstants::FloatOne >> 0x40, 0);
-						fVar46 = (local_3b8.W * local_3b8.Z + local_3b8.X * fVar55) * fVar24;
-						fVar47 = (local_3b8.W * (local_3b8.X + local_3b8.X) + local_3b8.Y * local_3b8.Z) *
-							fVar26;
-						fVar39 = fVar26 * (local_3b8.X * fVar55 - local_3b8.W * local_3b8.Z);
-						fVar42 = fVar24 * (local_3b8.X * local_3b8.Z - local_3b8.W * fVar55);
-						fVar31 = (float)((uint)((fVar34 - (fVar55 * local_3b8.Y + fVar35)) * fVar21) & uVar44);
-						fVar35 = (float)((uint)((fVar50 - (fVar35 + fVar35)) * 0.0) & uVar45);
-						fVar55 = fVar40 + fVar40;
-						fVar58 = fVar58 + fVar58;
-						fVar37 = (fVar38 + fVar38) * fVar38;
-						uVar29 = SUB164((undefined[16])GlobalVectorConstants::FloatOne.m128_u32, 0);
-						auVar23 = (undefined[16])GlobalVectorConstants::FloatOne >> 0x20;
-						fVar48 = (fVar53 * fVar58 + fVar38 * fVar55) * fVar57;
-						fVar49 = (fVar53 * (fVar38 + fVar38) + fVar40 * fVar58) * fVar27;
-						fVar41 = fVar27 * (fVar38 * fVar55 - fVar53 * fVar58);
-						fVar58 = fVar57 * (fVar38 * fVar58 - fVar53 * fVar55);
-						fVar55 = (float)((uint)((fVar34 - (fVar55 * fVar40 + fVar37)) * fVar56) & uVar44);
-						fVar38 = (float)((uint)((fVar50 - (fVar37 + fVar37)) * fVar36) & uVar45);
-						local_558 = CONCAT412(fVar48 * fVar35 + fVar35 * 0.0 + fVar35 * 0.0 + fVar38 * fVar50,
-							CONCAT48(fVar48 * fVar47 +
-								SUB164(ZEXT1216(ZEXT812(0)) >> 0x40, 0) * fVar42 +
-								fVar31 * 0.0 + fVar38 * fVar22,
-								CONCAT44(fVar48 * 0.0 + fVar46 * 0.0 + fVar58 * 0.0 +
-									fVar38 * fVar33,
-									fVar48 * fVar39 + 0.0 + fVar58 * 0.0 +
-									fVar38 * fVar32)));
-						_local_548 = CONCAT412(fVar35 * 0.0 + fVar41 * fVar35 + fVar35 * 0.0 + fVar38 * fVar50,
-							CONCAT48(fVar47 * 0.0 + fVar41 * fVar42 + fVar31 * 0.0 +
-								fVar38 * fVar22,
-								CONCAT44(fVar41 * fVar46 + 0.0 + fVar49 * 0.0 +
-									fVar38 * fVar33,
-									fVar39 * 0.0 + fVar41 * 0.0 + fVar49 * 0.0 +
-									fVar38 * fVar32)));
-						_local_538 = CONCAT412(fVar35 * 0.0 + fVar35 * 0.0 + fVar35 * 0.0 + fVar38 * fVar50,
-							CONCAT48(fVar47 * 0.0 +
-								SUB164(ZEXT1216(ZEXT812(0)) >> 0x40, 0) * fVar42 +
-								fVar31 * 0.0 + fVar38 * fVar22,
-								CONCAT44(fVar46 * 0.0 + 0.0 + fVar55 * 0.0 +
-									fVar38 * fVar33,
-									fVar39 * 0.0 + 0.0 + fVar55 * 0.0 +
-									fVar38 * fVar32)));
-						local_528 = CONCAT412(fVar52 * fVar35 + fVar51 * fVar35 + fVar35 * 0.0 + fVar50 * fVar50
-							, CONCAT48(fVar52 * fVar47 + fVar51 * fVar42 + fVar31 * 0.0 +
-								fVar50 * fVar22,
-								CONCAT44(fVar52 * 0.0 + fVar51 * fVar46 + fVar54 * 0.0 +
-									fVar50 * fVar33,
-									fVar52 * fVar39 + fVar51 * 0.0 + fVar54 * 0.0 +
-									fVar50 * fVar32)));
-						_func__thiscall_void_float(local_558, 1e-08);
-						uVar28 = SUB164((undefined[16])GlobalVectorConstants::FloatMinusOne >> 0x20, 0);
-						fVar22 = (float)(-(uint)(SUB164((undefined[16])
-							GlobalVectorConstants::FloatZero.m128_f32, 0) <=
-							fVar57 * fVar24) &
-							(SUB164((undefined[16])GlobalVectorConstants::FloatMinusOne.m128_u32,
-								0) ^ uVar29) ^
-							SUB164((undefined[16])GlobalVectorConstants::FloatMinusOne.m128_u32, 0)
-							);
-						fVar32 = (float)(-(uint)(SUB164((undefined[16])GlobalVectorConstants::FloatZero >>
-							0x20, 0) <= fVar27 * fVar26) &
-							(uVar28 ^ SUB164(auVar23, 0)) ^ uVar28);
-						_local_548 = CONCAT124(_auStack_544, (float)local_548 * fVar32);
-						_local_538 = CONCAT124(_auStack_534, (float)local_538 * 0.0);
-						_func__thiscall_undefined_FMatrix_ptr(&local_3a8, (FMatrix*)local_558);
-						fVar52 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf.m128_f32, 0);
-						fVar54 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf >> 0x20, 0);
-						fVar55 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf >> 0x40, 0);
-						fVar38 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf >> 0x60, 0);
-						local_1a8 = CONCAT412(fVar36 * 0.0,
-							CONCAT48(fVar56 * fVar21, CONCAT44(fVar27 * fVar26, fVar57 * fVar24)
-							));
-						fVar21 = local_3a8 * local_3a8 + fStack_3a0 * fStack_3a0;
-						fVar22 = fStack_3a4 * fStack_3a4 + fStack_39c * fStack_39c;
-						fVar24 = fStack_3a0 * fStack_3a0 + local_3a8 * local_3a8;
-						fVar26 = fStack_39c * fStack_39c + fStack_3a4 * fStack_3a4;
-						fVar33 = fVar22 + fVar21;
-						fVar50 = fVar22 + 0.0;
-						fVar32 = fVar26 + fVar24;
-						fVar51 = fVar21 + fVar26;
-						auVar23 = rsqrtps(CONCAT412(fVar26, CONCAT48(fVar24, CONCAT44(fVar22, fVar21))),
-							CONCAT412(fVar51, CONCAT48(fVar32, CONCAT44(fVar50, fVar33))));
-						fVar32 = fVar32 * fVar55;
-						fVar21 = SUB164(auVar23, 0);
-						fVar22 = SUB164(auVar23 >> 0x20, 0);
-						fVar24 = SUB164(auVar23 >> 0x40, 0);
-						fVar26 = SUB164(auVar23 >> 0x60, 0);
-						fVar21 = (fVar52 - fVar21 * fVar21 * fVar33 * fVar52) * fVar21 + fVar21;
-						fVar22 = (fVar54 - fVar22 * fVar22 * fVar50 * fVar54) * fVar22 + fVar22;
-						fVar24 = (fVar55 - fVar24 * fVar24 * fVar32) * fVar24 + fVar24;
-						fVar26 = (fVar38 - fVar26 * fVar26 * fVar51 * fVar38) * fVar26 + fVar26;
-						local_1b8 = local_528 & (undefined[16])0xffffffffffffffff;
-						uVar28 = SUB164((undefined[16])GlobalVectorConstants::Float0001 >> 0x20, 0);
-						uVar29 = SUB164((undefined[16])GlobalVectorConstants::Float0001 >> 0x40, 0);
-						uVar30 = SUB164((undefined[16])GlobalVectorConstants::Float0001 >> 0x60, 0);
-						local_1c8 = CONCAT412(((uint)(((fVar38 - fVar26 * fVar26 * fVar51 * fVar38) * fVar26 +
-							fVar26) * fStack_39c) ^ uVar30) & -(uint)(1e-08 <= fVar25)
-							^ uVar30, CONCAT48(((uint)(((fVar55 - fVar24 * fVar24 * fVar32) *
-								fVar24 + fVar24) * fStack_3a0) ^ uVar29
-								) & -(uint)(1e-08 <= fVar51) ^ uVar29,
-								CONCAT44(((uint)(((fVar54 - fVar22 * fVar22 *
-									fVar50 * fVar54) *
-									fVar22 + fVar22) * fStack_3a4)
-									^ uVar28) & -(uint)(1e-08 <= fVar50) ^
-									uVar28, ((uint)(((fVar52 - fVar21 *
-										fVar21 * fVar33 * fVar52) * fVar21 + fVar21) *
-										local_3a8) ^
-										SUB164((undefined[16])
-											GlobalVectorConstants::Float0001.m128_u32, 0
-										)) & -(uint)(1e-08 <= fVar33) ^
+									>> 0x20, 0),
+								fLocal_3 * local_3b8.X *
+								SUB164((undefined[16])
+									GlobalVectorConstants::QMULTI_SIGN_MASK0.
+									m128_f32, 0) + local_3b8.W * fLocal_0 +
+								fLocal_2 * local_3b8.Y *
+								SUB164((undefined[16])
+									GlobalVectorConstants::QMULTI_SIGN_MASK1.
+									m128_f32, 0) +
+								fLocal_1 * local_3b8.Z *
+								SUB164((undefined[16])
+									GlobalVectorConstants::QMULTI_SIGN_MASK2.
+									m128_f32, 0))));
+					fLocal_13 = local_3b8.Y * 0.0 - fLocal_5 * 0.0;
+					fLocal_14 = fLocal_4 * 0.0 - fLocal_6 * fVar21 * local_3b8.X;
+					fLocal_16 = fLocal_5 * local_3b8.X - fLocal_4 * local_3b8.Y;
+					fLocal_10 = fLocal_7 * local_3b8.W - fLocal_7 * local_3b8.W;
+					fLocal_13 = fLocal_13 + fLocal_13;
+					fLocal_14 = fLocal_14 + fLocal_14;
+					fLocal_16 = fLocal_16 + fLocal_16;
+					fLocal_10 = fLocal_10 + fLocal_10;
+					local_1b8 = CONCAT412((fLocal_10 * local_3b8.W - fLocal_10 * local_3b8.W) +
+						local_3b8.W * fLocal_10 + fLocal_7 + 0.0,
+						CONCAT48((fLocal_14 * local_3b8.X - fLocal_13 * local_3b8.Y) +
+							local_3b8.W * fLocal_16 + fLocal_6 * fVar21 + fLocal_12,
+							CONCAT44((fLocal_13 * 0.0 - fLocal_16 * local_3b8.X) +
+								local_3b8.W * fLocal_14 + fLocal_5 + fLocal_17,
+								(fLocal_16 * local_3b8.Y - fLocal_14 * 0.0) +
+								local_3b8.W * fLocal_13 + fLocal_4 + fLocal_15)));
+				} else {
+					fLocal_7 = local_3b8.Y + local_3b8.Y;
+					local_3b8.Z = local_3b8.Z + local_3b8.Z;
+					fVar35 = (local_3b8.X + local_3b8.X) * local_3b8.X;
+					fVar34 = SUB164((undefined[16])GlobalVectorConstants::FloatOne >> 0x40, 0);
+					fVar46 = (local_3b8.W * local_3b8.Z + local_3b8.X * fLocal_7) * fLocal_13;
+					fVar47 = (local_3b8.W * (local_3b8.X + local_3b8.X) + local_3b8.Y * local_3b8.Z) *
+						fLocal_14;
+					fVar39 = fLocal_14 * (local_3b8.X * fLocal_7 - local_3b8.W * local_3b8.Z);
+					fVar42 = fLocal_13 * (local_3b8.X * local_3b8.Z - local_3b8.W * fLocal_7);
+					fVar31 = (float)((uint)((fVar34 - (fLocal_7 * local_3b8.Y + fVar35)) * fVar21) & uVar44);
+					fVar35 = (float)((uint)((fLocal_16 - (fVar35 + fVar35)) * 0.0) & uVar45);
+					fLocal_7 = fLocal_1 + fLocal_1;
+					fLocal_2 = fLocal_2 + fLocal_2;
+					fVar37 = (fLocal_0 + fLocal_0) * fLocal_0;
+					uVar29 = SUB164((undefined[16])GlobalVectorConstants::FloatOne.m128_u32, 0);
+					auVar23 = (undefined[16])GlobalVectorConstants::FloatOne >> 0x20;
+					fVar48 = (fLocal_3 * fLocal_2 + fLocal_0 * fLocal_7) * fLocal_8;
+					fVar49 = (fLocal_3 * (fLocal_0 + fLocal_0) + fLocal_1 * fLocal_2) * fLocal_9;
+					fVar41 = fLocal_9 * (fLocal_0 * fLocal_7 - fLocal_3 * fLocal_2);
+					fLocal_2 = fLocal_8 * (fLocal_0 * fLocal_2 - fLocal_3 * fLocal_7);
+					fLocal_7 = (float)((uint)((fVar34 - (fLocal_7 * fLocal_1 + fVar37)) * fLocal_10) & uVar44);
+					fLocal_0 = (float)((uint)((fLocal_16 - (fVar37 + fVar37)) * fLocal_11) & uVar45);
+					local_558 = CONCAT412(fVar48 * fVar35 + fVar35 * 0.0 + fVar35 * 0.0 + fLocal_0 * fLocal_16,
+						CONCAT48(fVar48 * fVar47 +
+							SUB164(ZEXT1216(ZEXT812(0)) >> 0x40, 0) * fVar42 +
+							fVar31 * 0.0 + fLocal_0 * fLocal_12,
+							CONCAT44(fVar48 * 0.0 + fVar46 * 0.0 + fLocal_2 * 0.0 +
+								fLocal_0 * fLocal_17,
+								fVar48 * fVar39 + 0.0 + fLocal_2 * 0.0 +
+								fLocal_0 * fLocal_15)));
+					_local_548 = CONCAT412(fVar35 * 0.0 + fVar41 * fVar35 + fVar35 * 0.0 + fLocal_0 * fLocal_16,
+						CONCAT48(fVar47 * 0.0 + fVar41 * fVar42 + fVar31 * 0.0 +
+							fLocal_0 * fLocal_12,
+							CONCAT44(fVar41 * fVar46 + 0.0 + fVar49 * 0.0 +
+								fLocal_0 * fLocal_17,
+								fVar39 * 0.0 + fVar41 * 0.0 + fVar49 * 0.0 +
+								fLocal_0 * fLocal_15)));
+					_local_538 = CONCAT412(fVar35 * 0.0 + fVar35 * 0.0 + fVar35 * 0.0 + fLocal_0 * fLocal_16,
+						CONCAT48(fVar47 * 0.0 +
+							SUB164(ZEXT1216(ZEXT812(0)) >> 0x40, 0) * fVar42 +
+							fVar31 * 0.0 + fLocal_0 * fLocal_12,
+							CONCAT44(fVar46 * 0.0 + 0.0 + fLocal_7 * 0.0 +
+								fLocal_0 * fLocal_17,
+								fVar39 * 0.0 + 0.0 + fLocal_7 * 0.0 +
+								fLocal_0 * fLocal_15)));
+					local_528 = CONCAT412(fLocal_5 * fVar35 + fLocal_4 * fVar35 + fVar35 * 0.0 + fLocal_16 * fLocal_16
+						, CONCAT48(fLocal_5 * fVar47 + fLocal_4 * fVar42 + fVar31 * 0.0 +
+							fLocal_16 * fLocal_12,
+							CONCAT44(fLocal_5 * 0.0 + fLocal_4 * fVar46 + fLocal_6 * 0.0 +
+								fLocal_16 * fLocal_17,
+								fLocal_5 * fVar39 + fLocal_4 * 0.0 + fLocal_6 * 0.0 +
+								fLocal_16 * fLocal_15)));
+					_func__thiscall_void_float(local_558, 1e-08);
+					uVar28 = SUB164((undefined[16])GlobalVectorConstants::FloatMinusOne >> 0x20, 0);
+					fLocal_12 = (float)(-(uint)(SUB164((undefined[16])
+						GlobalVectorConstants::FloatZero.m128_f32, 0) <=
+						fLocal_8 * fLocal_13) &
+						(SUB164((undefined[16])GlobalVectorConstants::FloatMinusOne.m128_u32,
+							0) ^ uVar29) ^
+						SUB164((undefined[16])GlobalVectorConstants::FloatMinusOne.m128_u32, 0)
+						);
+					fLocal_15 = (float)(-(uint)(SUB164((undefined[16])GlobalVectorConstants::FloatZero >>
+						0x20, 0) <= fLocal_9 * fLocal_14) &
+						(uVar28 ^ SUB164(auVar23, 0)) ^ uVar28);
+					_local_548 = CONCAT124(_auStack_544, (float)local_548 * fLocal_15);
+					_local_538 = CONCAT124(_auStack_534, (float)local_538 * 0.0);
+					_func__thiscall_undefined_fLocal_ptr(&local_3a8, (FMatrix*)local_558);
+					fLocal_5 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf.m128_f32, 0);
+					fLocal_6 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf >> 0x20, 0);
+					fLocal_7 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf >> 0x40, 0);
+					fLocal_0 = SUB164((undefined[16])GlobalVectorConstants::FloatOneHalf >> 0x60, 0);
+					local_1a8 = CONCAT412(fLocal_11 * 0.0,
+						CONCAT48(fLocal_10 * fVar21, CONCAT44(fLocal_9 * fLocal_14, fLocal_8 * fLocal_13)
+						));
+					fVar21 = local_3a8 * local_3a8 + fStack_3a0 * fStack_3a0;
+					fLocal_12 = fStack_3a4 * fStack_3a4 + fStack_39c * fStack_39c;
+					fLocal_13 = fStack_3a0 * fStack_3a0 + local_3a8 * local_3a8;
+					fLocal_14 = fStack_39c * fStack_39c + fStack_3a4 * fStack_3a4;
+					fLocal_17 = fLocal_12 + fVar21;
+					fLocal_16 = fLocal_12 + 0.0;
+					fLocal_15 = fLocal_14 + fLocal_13;
+					fLocal_4 = fVar21 + fLocal_14;
+					auVar23 = rsqrtps(CONCAT412(fLocal_14, CONCAT48(fLocal_13, CONCAT44(fLocal_12, fVar21))),
+						CONCAT412(fLocal_4, CONCAT48(fLocal_15, CONCAT44(fLocal_16, fLocal_17))));
+					fLocal_15 = fLocal_15 * fLocal_7;
+					fVar21 = SUB164(auVar23, 0);
+					fLocal_12 = SUB164(auVar23 >> 0x20, 0);
+					fLocal_13 = SUB164(auVar23 >> 0x40, 0);
+					fLocal_14 = SUB164(auVar23 >> 0x60, 0);
+					fVar21 = (fLocal_5 - fVar21 * fVar21 * fLocal_17 * fLocal_5) * fVar21 + fVar21;
+					fLocal_12 = (fLocal_6 - fLocal_12 * fLocal_12 * fLocal_16 * fLocal_6) * fLocal_12 + fLocal_12;
+					fLocal_13 = (fLocal_7 - fLocal_13 * fLocal_13 * fLocal_15) * fLocal_13 + fLocal_13;
+					fLocal_14 = (fLocal_0 - fLocal_14 * fLocal_14 * fLocal_4 * fLocal_0) * fLocal_14 + fLocal_14;
+					local_1b8 = local_528 & (undefined[16])0xffffffffffffffff;
+					uVar28 = SUB164((undefined[16])GlobalVectorConstants::Float0001 >> 0x20, 0);
+					uVar29 = SUB164((undefined[16])GlobalVectorConstants::Float0001 >> 0x40, 0);
+					uVar30 = SUB164((undefined[16])GlobalVectorConstants::Float0001 >> 0x60, 0);
+					local_1c8 = CONCAT412(((uint)(((fLocal_0 - fLocal_14 * fLocal_14 * fLocal_4 * fLocal_0) * fLocal_14 +
+						fLocal_14) * fStack_39c) ^ uVar30) & -(uint)(1e-08 <= fVar25)
+						^ uVar30, CONCAT48(((uint)(((fLocal_7 - fLocal_13 * fLocal_13 * fLocal_15) *
+							fLocal_13 + fLocal_13) * fStack_3a0) ^ uVar29
+							) & -(uint)(1e-08 <= fLocal_4) ^ uVar29,
+							CONCAT44(((uint)(((fLocal_6 - fLocal_12 * fLocal_12 *
+								fLocal_16 * fLocal_6) *
+								fLocal_12 + fLocal_12) * fStack_3a4)
+								^ uVar28) & -(uint)(1e-08 <= fLocal_16) ^
+								uVar28, ((uint)(((fLocal_5 - fVar21 *
+									fVar21 * fLocal_17 * fLocal_5) * fVar21 + fVar21) *
+									local_3a8) ^
 									SUB164((undefined[16])
 										GlobalVectorConstants::Float0001.m128_u32, 0
-									))));
-					}
-					AActor::SetActorTransform
-					((AActor*)this, (FTransform*)local_1c8, false, (FHitResult*)0x0, None);
+									)) & -(uint)(1e-08 <= fLocal_17) ^
+								SUB164((undefined[16])
+									GlobalVectorConstants::Float0001.m128_u32, 0
+								))));
 				}
-				goto LAB_180511897;
+				AActor::SetActorTransform(local_1c8, false);
 			}
+			goto LAB_180511897;
 		}
+
 
 		// WALL //
 		hitWallRef = (AFGBuildableWall*)&(hitResult.Actor);
 		if (hitWallRef != NULL) {
-			hitClass = AFGBuildableWall::GetPrivateStaticClass();
-			bool valid = UStruct::IsChildOf(*(UStruct**)&hitWallRef->field_0x10, (UStruct*)hitClass);
-			if (valid) {
-				*(AFGBuildableWall**)&this->field_0x460 = hitWallRef;
-				iVar18 = (**(code**)(*(long long*)this + 0x7a0))(this);
-				fVar21 = AFGHologram::ApplyScrollRotationTo((AFGHologram*)this, 0.0, false);
-				local_4d8.Y = (this->mWallSnapOffset).X;
-				local_4cc.Y = *(float*)&(hitResult->TraceStart).field_0x4 -
-					*(float*)&(hitResult->Location).field_0x4;
-				local_4d8.X = 200.0;
-				local_4d8.Z = (this->mWallSnapOffset).Y;
-				local_4cc.X = *(float*)&hitResult->TraceStart - *(float*)&(hitResult->Location).field_0x0;
-				local_4cc.Z = *(float*)&(hitResult->TraceStart).field_0x8 -
-					*(float*)&(hitResult->Location).field_0x8;
-				AFGBuildableHologram::SnapToWall
-				((AFGBuildableHologram*)this, hitWallRef, &local_4cc, (FVector*)&hitResult->Location, Z,
-					&local_4d8,
-					(float)(((int)ROUND(fVar21 * (2.0 / (float)iVar18) + 0.5) >> 1) * iVar18),
-					&local_478, &local_488);
-				local_468._0_8_ = local_488._0_8_;
-				local_468.Roll = local_488.Roll;
-				local_458.V._0_8_ = local_478._0_8_;
-				local_458.V[2] = local_478.Z;
-				AActor::SetActorLocationAndRotation
-				((AActor*)this, &local_458, &local_468, false, (FHitResult*)0x0, None);
-			}
+			*(AFGBuildableWall**)&this->field_0x460 = hitWallRef;
+			iVar18 = (**(code**)(*(long long*)this + 0x7a0))(this);
+			fVar21 = AFGHologram::ApplyScrollRotationTo(0.0, false);
+			local_4d8.Y = (this->mWallSnapOffset).X;
+			local_4cc.Y = *(float*)&(hitResult->TraceStart).field_0x4 - *(float*)&(hitResult->Location).field_0x4;
+			local_4d8.X = 200.0;
+			local_4d8.Z = (this->mWallSnapOffset).Y;
+			local_4cc.X = *(float*)&hitResult->TraceStart - *(float*)&(hitResult->Location).field_0x0;
+			local_4cc.Z = *(float*)&(hitResult->TraceStart).field_0x8 - *(float*)&(hitResult->Location).field_0x8;
+
+			SnapToWall(
+				hitWallRef,
+				local_4cc,
+				hitResult.Location,
+				EAxis::Z,
+				local_4d8,
+				(float)(((int)ROUND(fVar21 * (2.0 / (float)iVar18) + 0.5) >> 1) * iVar18),
+				local_478,
+				local_488
+			);
+
+			local_468._0_8_ = local_488._0_8_;
+			local_468.Roll = local_488.Roll;
+			local_458.V._0_8_ = local_478._0_8_;
+			local_458.V[2] = local_478.Z;
+
+			SetActorLocationAndRotation(local_458, local_468);
 		}
 	
-	} else if (
-		(this->mBuildStep == EPipelineAttachmentBuildStep::PABS_AdjustRotation) &&
-		(this->mSnappedPipeline != (AFGBuildablePipeline*)0x0)
-	){
+	}
+	else if (mBuildStep == EPipelineAttachmentBuildStep::PABS_AdjustRotation && this->mSnappedPipeline != NULL) {
 
 		sceneComponent = *(USceneComponent**)&this->field_0x170;
 		if (sceneComponent == (USceneComponent*)0x0) {
@@ -1010,26 +1008,27 @@ bool AABJunctionHologram::VanillaTrySnap(const FHitResult& hitResult) {
 			local_4a8.X = (fVar21 * *(float*)&this->field_0x34 - 0.0) + 1.0;
 			local_4a8.Z = *(float*)&this->field_0x30 * 0.0 + fVar21 * *(float*)&this->field_0x3c;
 			local_4a8.Y = *(float*)&this->field_0x3c * 0.0 - fVar21 * *(float*)&this->field_0x30;
-		} else {
+		}
+		else {
 			float compX = (sceneComponent->ComponentToWorld).Translation.X;
 			float compY = (sceneComponent->ComponentToWorld).Translation.Y;
 			float compZ = (sceneComponent->ComponentToWorld).Translation.Z;
 			puVar20 = (undefined8*)&compX;
-			pFVar17 = USceneComponent::GetForwardVector(sceneComponent, &local_38c);
+			pFVar17 = sceneComponent->GetForwardVector(&local_38c);
 		}
 
 		local_498._0_8_ = *(undefined8*)pFVar17->V;
 		local_498.Z = pFVar17->V[2];
-		fVar21 = AFGHologram::ApplyScrollRotationTo((AFGHologram*)this, 0.0, false);
+		fVar21 = ApplyScrollRotationTo(0.0, false);
 		_func__thiscall_FVector_float_FVector_ptr
 		(&this->mBuildStepUpVector, &local_3f8, fVar21, &local_498);
-		pFVar10 = (FMatrix*)FRotationMatrix::MakeFromXZ(&local_268, (FVector*)&local_498, (FVector*)&local_3f8);
-		FMatrix::Rotator(pFVar10, &local_448);
+		someMatrix = (FMatrix*)FRotationMatrix::MakeFromXZ(&local_268, (FVector*)&local_498, (FVector*)&local_3f8);
+		local_448 = someMatrix->Rotator();
 		local_438._0_8_ = local_448._0_8_;
 		local_428.V._0_8_ = *puVar20;
 		local_438.Roll = local_448.Roll;
 		local_428.V[2] = *(float*)(puVar20 + 1);
-		AActor::SetActorLocationAndRotation
-		((AActor*)this, &local_428, &local_438, false, (FHitResult*)0x0, None);
+		SetActorLocationAndRotation(local_428, local_438);
+	}
 }
 //*/
