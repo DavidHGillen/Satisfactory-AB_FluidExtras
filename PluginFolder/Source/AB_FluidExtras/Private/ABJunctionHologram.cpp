@@ -33,6 +33,10 @@ void AABJunctionHologram::RotateFromSnappedElement() {
 
 	if (mSnappedConnectionComponent != NULL) {
 		UFGPipeConnectionComponent* myConnector = mPipeConnectionComponents[mSnapConnectionIndex];
+		SetActorRotation(FRotator(0));
+		AddActorLocalRotation(myConnector->GetRelativeRotation());
+		AddActorWorldRotation(mSnappedConnectionComponent->GetComponentRotation());
+		//AddActorLocalRotation(myConnector->GetComponentRotation());
 		/*
 		FRotator::
 
@@ -42,12 +46,12 @@ void AABJunctionHologram::RotateFromSnappedElement() {
 
 		mSnappedConnectionComponent->GetComponentRotation();
 		*/
-	} else if(mSnappedPipeline != NULL) {
+	} /*else if (mSnappedPipeline != NULL) {
 
-	}
+	}*/
 }
 
-		//*
+		/*
 bool AABJunctionHologram::VanillaTrySnap(const FHitResult& hitResult) {
 	code* pcVar2;
 	undefined auVar3[12];
