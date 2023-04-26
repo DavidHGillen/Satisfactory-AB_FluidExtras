@@ -29,12 +29,12 @@ int32 AABJunctionHologram::GetRotationStep() const {
 }
 
 void AABJunctionHologram::RotateFromSnappedElement() {
-	//UE_LOG(LogTemp, Warning, TEXT("SPIN: %d, %d] %d"), delta, step, mSnappedConnectionComponent);
 
 	if (mSnappedConnectionComponent != NULL) {
+		UE_LOG(LogTemp, Warning, TEXT("isSnapped: "));
 		UFGPipeConnectionComponent* myConnector = mPipeConnectionComponents[mSnapConnectionIndex];
-		SetActorRotation(FRotator(0));
-		AddActorLocalRotation(myConnector->GetRelativeRotation());
+		SetActorRotation(FRotator(180, 0, 0));
+		AddActorLocalRotation(myConnector->GetRelativeRotation().GetInverse());
 		AddActorWorldRotation(mSnappedConnectionComponent->GetComponentRotation());
 		//AddActorLocalRotation(myConnector->GetComponentRotation());
 		/*
