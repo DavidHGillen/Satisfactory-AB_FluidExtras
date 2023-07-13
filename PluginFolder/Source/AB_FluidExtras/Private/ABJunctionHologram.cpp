@@ -32,7 +32,7 @@ void AABJunctionHologram::RotateFromSnappedElement() {
 
 	if (mSnappedConnectionComponent != NULL) {
 		UE_LOG(LogTemp, Warning, TEXT("isSnapped: "));
-		UFGPipeConnectionComponent* myConnector = mPipeConnectionComponents[mSnapConnectionIndex];
+		UFGPipeConnectionComponentBase* myConnector = mPipeConnectionComponents[mSnapConnectionIndex];
 		SetActorRotation(FRotator(180, 0, 0));
 		AddActorLocalRotation(myConnector->GetRelativeRotation().GetInverse());
 		AddActorWorldRotation(mSnappedConnectionComponent->GetComponentRotation());
