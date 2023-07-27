@@ -13,32 +13,29 @@ Mid: toggle+spin
 End: toggle+spin
 Grd: spin
 
--- Tee
-Mid: spin
-End: toggle+spin
-Grd: spin+spin
+
 
 -- Fork
 Mid: toggle+spin
 End: toggle+spin
-Grd: toggle+spin
+Grd: spin+spin
 
--- DoubleT / Stars (3,4)
+-- Tee / DoubleT / Stars (3,4)
 Mid: spin
 End: toggle+spin
-Grd: spin
+Grd: spin+spin
+
+-- Bends 45 / 60 / 90 / 180
+Mid: none
+End: spin
+Grd: spin+spin
 
 -- L / Tri
 Mid: none
 End: spin
 Grd: spin
 
--- 45 / 90 / 180
-Mid: none
-End: spin
-Grd: spin+spin
-
 -- Caps (3,4)
 Mid: none
 End: toggle+spin
-Grd: spin
+Grd: spin+spin
