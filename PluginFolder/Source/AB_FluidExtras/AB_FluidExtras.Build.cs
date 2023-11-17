@@ -28,7 +28,6 @@ public class AB_FluidExtras : ModuleRules
 			"AIModule",
 			"GameplayTasks",
 			"SlateCore", "Slate", "UMG",
-			"InstancedSplines",
 			"RenderCore",
 			"CinematicCamera",
 			"Foliage",
@@ -43,7 +42,6 @@ public class AB_FluidExtras : ModuleRules
 		// FactoryGame plugins
 		PublicDependencyModuleNames.AddRange(new[] {
 			"AbstractInstance",
-			"InstancedSplinesComponent",
 			"SignificanceISPC"
 		});
 
