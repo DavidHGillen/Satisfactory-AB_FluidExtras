@@ -1,12 +1,12 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.0.1",
-	"SemVersion": "1.0.1",
+	"VersionName": "1.0.2",
+	"SemVersion": "1.0.2",
 	"FriendlyName": "Fluid Extras",
 	"Description": "Several new pipe junctions, alternate Mini Water Extractor, and new A.I. Packing machine.",
 	"Category": "Modding",
-	"CreatedBy": "AngryBeaver#9028",
+	"CreatedBy": "AngryBeaver",
 	"CreatedByURL": "",
 	"DocsURL": "",
 	"MarketplaceURL": "",
@@ -25,7 +25,7 @@
 	"Plugins": [
 		{
 			"Name": "SML",
-			"SemVersion": "^3.6.0",
+			"SemVersion": "^3.7.0",
 			"bIsOptional": false,
 			"Enabled": true
 		}
