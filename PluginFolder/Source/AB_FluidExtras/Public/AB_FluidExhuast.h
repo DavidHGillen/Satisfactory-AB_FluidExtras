@@ -13,5 +13,12 @@ UCLASS()
 class AB_FLUIDEXTRAS_API AAB_FluidExhuast : public AFGBuildableFactory
 {
 	GENERATED_BODY()
-	
+
+public:
+	AAB_FluidExhuast();
+
+protected:
+	// Factory interface
+	//////////////////////////////////////////////////////
+	virtual void Factory_Tick(float dt) override;
 };

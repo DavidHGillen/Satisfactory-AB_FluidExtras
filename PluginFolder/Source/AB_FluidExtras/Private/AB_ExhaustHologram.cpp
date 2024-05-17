@@ -3,3 +3,4 @@
 
 #include "AB_ExhaustHologram.h"
 
+AAB_ExhaustHologram::AAB_ExhaustHologram() {}

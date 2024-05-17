@@ -13,5 +13,7 @@ UCLASS()
 class AB_FLUIDEXTRAS_API AAB_ExhaustHologram : public AFGBuildableHologram
 {
 	GENERATED_BODY()
-	
+
+public:
+	AAB_ExhaustHologram();
 };
