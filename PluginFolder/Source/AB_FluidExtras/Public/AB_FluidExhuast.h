@@ -17,6 +17,12 @@ class AB_FLUIDEXTRAS_API AAB_FluidExhuast : public AFGBuildableFactory
 public:
 	AAB_FluidExhuast();
 
+	UPROPERTY(EditDefaultsOnly, Category = "Exhaust System")
+	TArray< TSubclassOf<class UFGItemDescriptor> > validItems;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Exhaust System")
+	bool bRequireSafeVent;
+
 protected:
 	// Factory interface
 	//////////////////////////////////////////////////////
