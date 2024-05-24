@@ -3,7 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FGFactoryClipboard.h"
+#include "FGInventoryLibrary.h"
+#include "FGPipeConnectionFactory.h"
 #include "Buildables/FGBuildableFactory.h"
+#include "Replication/FGReplicationDetailInventoryComponent.h"
 #include "AB_FluidExhuast.generated.h"
 
 /**
@@ -15,16 +19,73 @@ class AB_FLUIDEXTRAS_API AAB_FluidExhuast : public AFGBuildableFactory
 	GENERATED_BODY()
 
 public:
-	AAB_FluidExhuast();
-
+	// what is possible to safely vent
 	UPROPERTY(EditDefaultsOnly, Category = "Exhaust System")
-	TArray< TSubclassOf<class UFGItemDescriptor> > validItems;
+	TArray< TSubclassOf<class UFGItemDescriptor> > validItems; 
 
-	UPROPERTY(EditDefaultsOnly, Category = "Exhaust System")
-	bool bRequireSafeVent;
+	// limit the venting behaviour to only situations that are "safe"
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
+	bool bRequireSafeVent; 
+
+	// how long in seconds a vent should last, used to ultra low rates into bursts of bigger rates
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
+	float minTimeVenting;
+
+	// maximum storage ovveride value
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
+	int storageOverride;
+
+	// what the placed vent can safely do as informed by the hologram
+	UPROPERTY(BlueprintReadOnly, /*SaveGame, Replicated,*/ Category = "Exhaust Instance")
+	TArray< TSubclassOf<class UFGItemDescriptor> > safeItems; 
+
+	// vent 100% of storage per minute or try to hit a specific ammount
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, /*SaveGame, Replicated,*/ Category = "Exhaust Instance")
+	bool bAutoRateVenting;
+
+	// what the specific drain rate is if we're not calculating it automatically
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, /*SaveGame, Replicated,*/ Category = "Exhaust Instance")
+	int targetRateToVent;
 
 protected:
-	// Factory interface
-	//////////////////////////////////////////////////////
+	// are we venting now
+	bool bActiveVenting;
+	UFGPipeConnectionFactory* inputConnection;
+	TSubclassOf<class UFGItemDescriptor> itemCurrentVent;
+
+	UPROPERTY(SaveGame)
+	class UFGInventoryComponent* mInputInventory;
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Exhaust Instance")
+	virtual TSubclassOf<class UFGItemDescriptor> GetCurrentVentItem() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Exhaust Instance")
+	virtual int GetVentRateCurrent() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Exhaust Instance")
+	virtual int GetStoredFluidCurrent() const;
+
+public:
+	void BeginPlay();
+
+	//~ Begin IFGFactoryClipboardInterface
+	/*
+	bool CanUseFactoryClipboard_Implementation() override { return true; }
+	UFGFactoryClipboardSettings* CopySettings_Implementation() override;
+	bool PasteSettings_Implementation(UFGFactoryClipboardSettings* settings) override;
+	*/
+	//~ End IFGFactoryClipboardInterface
+
+protected:
 	virtual void Factory_Tick(float dt) override;
+	//virtual void Factory_TickProducing(float dt);
+	//virtual void Factory_StopProducing();
+
+	//void StartProductionLoopEffects(bool didStartProducing);
+	//void StopProductionLoopEffects(bool didStopProducing);
+	//void Factory_PullPipeInput(float dt);
+
+	virtual void PullFluid();
+	virtual void VentFluid();
 };
