@@ -11,46 +11,47 @@ void AAB_FluidExhuast::BeginPlay() {
 	if (GetLocalRole() == ENetRole::ROLE_Authority) {
 		if (mInputInventory == NULL) {
 			mInputInventory = UFGInventoryLibrary::CreateInventoryComponent(this, "InputInventory");
+			mInputInventory->AddArbitrarySlotSize(0, storageOverride);
 		}
 
 		inputConnection->SetInventory(mInputInventory);
+		inputConnection->SetInventoryAccessIndex(0);
 	}
 }
 
 //
 TSubclassOf<class UFGItemDescriptor> AAB_FluidExhuast::GetCurrentVentItem() const {
-	return validItems[0];
+	FInventoryStack stackTemp;
+	if (mInputInventory->GetStackFromIndex(0, stackTemp)) {
+		return stackTemp.Item.GetItemClass();
+	}
+	return NULL;
+}
+
+int AAB_FluidExhuast::GetStoredFluidCurrent() const {
+	FInventoryStack stackTemp;
+	if (mInputInventory->GetStackFromIndex(0, stackTemp)) {
+		return stackTemp.NumItems;
+	}
+	return 0;
 }
 
 int AAB_FluidExhuast::GetVentRateCurrent() const {
 	return 33123;
 }
 
-int AAB_FluidExhuast::GetStoredFluidCurrent() const {
-	return 42500;
-}
-
 //
 void AAB_FluidExhuast::Factory_Tick(float dt) {
-	//Super::Factory_Tick(dt);
-
-	//UE_LOG(LogTemp, Warning, TEXT("MAH TOK"));
-	//UE_LOG(LogTemp, Warning, TEXT("MAH JUICE [ %s"), *UFGItemDescriptor::GetItemName(foundFluidType).ToString());
-
-	//mInputInventory->GetStackFromIndex
-
-	//bool bSuccess = inputConnection->Factory_Internal_PullPipeInput(dt, FInventoryStack & out_stack, GetCurrentVentItem());
-
 	// investigate to see if we should pull fluid
 	if (inputConnection->IsConnected()) {
-		PullFluid();
+		PullFluid(dt);
 	}
 
 	// handle venting of fluid we possess
-	VentFluid();
+	VentFluid(dt);
 }
 
-void AAB_FluidExhuast::PullFluid() {
+void AAB_FluidExhuast::PullFluid(float dt) {
 	TSubclassOf<UFGItemDescriptor> foundFluidType = inputConnection->GetFluidDescriptor();
 
 	if (foundFluidType == NULL) { return; }
@@ -59,11 +60,27 @@ void AAB_FluidExhuast::PullFluid() {
 	if (foundFluidType != GetCurrentVentItem()) {
 		if (bActiveVenting) { return; }
 
-		// swap fluid type
+		// do we like our new fluid
+		if (!isValidFluid(foundFluidType)) { return; }
+
+		// clean out
+		mInputInventory->RemoveAllFromIndex(0);
 	}
 
 	// perform pull
+	FInventoryStack tempStack;
+	inputConnection->Factory_PullPipeInput(dt, tempStack, foundFluidType, 10000);
 }
 
-void AAB_FluidExhuast::VentFluid() {
+void AAB_FluidExhuast::VentFluid(float dt) {
+	if (mInputInventory->IsIndexEmpty(0)) { return; }
+	
+	//TODO: RATES
+	int removalRate = 100;
+	mInputInventory->RemoveFromIndex(0, removalRate);
+}
+
+bool AAB_FluidExhuast::isValidFluid(TSubclassOf<class UFGItemDescriptor> item) {
+	if (safeItems.Num() == 0) { return true; }
+	return safeItems.Contains(item);
 }

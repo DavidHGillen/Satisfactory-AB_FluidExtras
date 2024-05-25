@@ -21,11 +21,11 @@ class AB_FLUIDEXTRAS_API AAB_FluidExhuast : public AFGBuildableFactory
 public:
 	// what is possible to safely vent
 	UPROPERTY(EditDefaultsOnly, Category = "Exhaust System")
-	TArray< TSubclassOf<class UFGItemDescriptor> > validItems; 
+	TArray< TSubclassOf<class UFGItemDescriptor> > validItems;
 
 	// limit the venting behaviour to only situations that are "safe"
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
-	bool bRequireSafeVent; 
+	bool bRequireSafeVent;
 
 	// how long in seconds a vent should last, used to ultra low rates into bursts of bigger rates
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
@@ -36,15 +36,15 @@ public:
 	int storageOverride;
 
 	// what the placed vent can safely do as informed by the hologram
-	UPROPERTY(BlueprintReadOnly, /*SaveGame, Replicated,*/ Category = "Exhaust Instance")
+	UPROPERTY(BlueprintReadOnly, SaveGame, /*Replicated,*/ Category = "Exhaust Instance")
 	TArray< TSubclassOf<class UFGItemDescriptor> > safeItems; 
 
 	// vent 100% of storage per minute or try to hit a specific ammount
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, /*SaveGame, Replicated,*/ Category = "Exhaust Instance")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust Instance")
 	bool bAutoRateVenting;
 
 	// what the specific drain rate is if we're not calculating it automatically
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, /*SaveGame, Replicated,*/ Category = "Exhaust Instance")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust Instance")
 	int targetRateToVent;
 
 protected:
@@ -84,8 +84,8 @@ protected:
 
 	//void StartProductionLoopEffects(bool didStartProducing);
 	//void StopProductionLoopEffects(bool didStopProducing);
-	//void Factory_PullPipeInput(float dt);
 
-	virtual void PullFluid();
-	virtual void VentFluid();
+	virtual void PullFluid(float dt);
+	virtual void VentFluid(float dt);
+	virtual bool isValidFluid(TSubclassOf<class UFGItemDescriptor> item);
 };
