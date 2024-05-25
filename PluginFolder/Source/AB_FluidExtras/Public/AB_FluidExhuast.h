@@ -31,7 +31,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
 	float minTimeVenting;
 
-	// maximum storage ovveride value
+	// maximum storage override value
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
 	int storageOverride;
 
@@ -49,9 +49,9 @@ public:
 
 protected:
 	// are we venting now
-	bool bActiveVenting;
+	bool bActiveVenting = false;
 	UFGPipeConnectionFactory* inputConnection;
-	TSubclassOf<class UFGItemDescriptor> itemCurrentVent;
+	TSubclassOf<class UFGItemDescriptor> cachedVentItem;
 
 	UPROPERTY(SaveGame)
 	class UFGInventoryComponent* mInputInventory;

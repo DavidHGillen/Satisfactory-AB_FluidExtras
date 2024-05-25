@@ -2,6 +2,7 @@
 
 
 #include "AB_FluidExhuast.h"
+#include "Math/UnrealMathUtility.h"
 
 void AAB_FluidExhuast::BeginPlay() {
 	Super::BeginPlay();
@@ -13,9 +14,6 @@ void AAB_FluidExhuast::BeginPlay() {
 			mInputInventory = UFGInventoryLibrary::CreateInventoryComponent(this, "InputInventory");
 			mInputInventory->AddArbitrarySlotSize(0, storageOverride);
 		}
-
-		inputConnection->SetInventory(mInputInventory);
-		inputConnection->SetInventoryAccessIndex(0);
 	}
 }
 
@@ -37,7 +35,7 @@ int AAB_FluidExhuast::GetStoredFluidCurrent() const {
 }
 
 int AAB_FluidExhuast::GetVentRateCurrent() const {
-	return 33123;
+	return bAutoRateVenting ? GetStoredFluidCurrent() : targetRateToVent;
 }
 
 //
@@ -57,30 +55,63 @@ void AAB_FluidExhuast::PullFluid(float dt) {
 	if (foundFluidType == NULL) { return; }
 
 	// if it's a new fluid wait until we're empty to pull
-	if (foundFluidType != GetCurrentVentItem()) {
+	if (foundFluidType != cachedVentItem) {
 		if (bActiveVenting) { return; }
 
 		// do we like our new fluid
 		if (!isValidFluid(foundFluidType)) { return; }
+		cachedVentItem = foundFluidType;
 
 		// clean out
-		mInputInventory->RemoveAllFromIndex(0);
+		if (GetStoredFluidCurrent() > 0) {
+			mInputInventory->RemoveAllFromIndex(0);
+		}
+		//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ TurboSuck Now: %s"), *UFGItemDescriptor::GetItemName(cachedVentItem).ToString());
+	}
+
+	// measure pull
+	int pullCount = FMath::CeilToInt(10000 * dt); // 600/min
+	int currentSpace = storageOverride - GetStoredFluidCurrent();
+	if (pullCount > currentSpace) {
+		pullCount = currentSpace;
+		//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ MaxSpace: %d"), currentSpace);
 	}
 
 	// perform pull
-	FInventoryStack tempStack;
-	inputConnection->Factory_PullPipeInput(dt, tempStack, foundFluidType, 10000);
+	if (pullCount > 0) {
+		FInventoryStack tempStack;
+		inputConnection->Factory_PullPipeInput(dt, tempStack, cachedVentItem, pullCount);
+		if (tempStack.NumItems > 0) {
+			mInputInventory->AddStackToIndex(0, tempStack);
+		}
+		//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ PipePull: %d"), pullCount);
+	}
 }
 
 void AAB_FluidExhuast::VentFluid(float dt) {
-	if (mInputInventory->IsIndexEmpty(0)) { return; }
+	if (mInputInventory->IsIndexEmpty(0)) {
+		bActiveVenting = false;
+		//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ EMPTY"));
+		return;
+	}
 	
-	//TODO: RATES
-	int removalRate = 100;
-	mInputInventory->RemoveFromIndex(0, removalRate);
+	int ventCount = FMath::CeilToInt((GetVentRateCurrent() / 60.0f) * dt);
+	int currentStore = GetStoredFluidCurrent();
+	if (ventCount <= 0) {
+		ventCount = 1;
+	}
+	if (ventCount > currentStore) {
+		ventCount = currentStore;
+	}
+
+	if (ventCount > 0) {
+		bActiveVenting = true;
+		mInputInventory->RemoveFromIndex(0, ventCount);
+	}
+	//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ VentCount: %d"), ventCount);
 }
 
 bool AAB_FluidExhuast::isValidFluid(TSubclassOf<class UFGItemDescriptor> item) {
-	if (safeItems.Num() == 0) { return true; }
+	if (!bRequireSafeVent) { return true; }
 	return safeItems.Contains(item);
 }
