@@ -3,7 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "FGFactoryClipboard.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 #include "FGInventoryLibrary.h"
 #include "FGPipeConnectionFactory.h"
 #include "Buildables/FGBuildableFactory.h"
@@ -35,6 +36,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
 	int storageOverride;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
+	TMap<EResourceForm, UNiagaraSystem*> formToParticleFX;
+
 	// what the placed vent can safely do as informed by the hologram
 	UPROPERTY(BlueprintReadOnly, SaveGame, /*Replicated,*/ Category = "Exhaust Instance")
 	TArray< TSubclassOf<class UFGItemDescriptor> > safeItems; 
@@ -46,6 +50,9 @@ public:
 	// what the specific drain rate is if we're not calculating it automatically
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust Instance")
 	int targetRateToVent;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Exhaust Instance")
+	UNiagaraComponent* currentParticleFX;
 
 protected:
 	// are we venting now
@@ -69,13 +76,8 @@ public:
 public:
 	void BeginPlay();
 
-	//~ Begin IFGFactoryClipboardInterface
-	/*
-	bool CanUseFactoryClipboard_Implementation() override { return true; }
-	UFGFactoryClipboardSettings* CopySettings_Implementation() override;
-	bool PasteSettings_Implementation(UFGFactoryClipboardSettings* settings) override;
-	*/
-	//~ End IFGFactoryClipboardInterface
+	UFUNCTION(BlueprintImplementableEvent)
+	void ExhaustFormUpdate(EResourceForm newForm);
 
 protected:
 	virtual void Factory_Tick(float dt) override;

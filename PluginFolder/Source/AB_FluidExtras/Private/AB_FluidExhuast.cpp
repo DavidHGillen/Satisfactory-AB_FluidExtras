@@ -60,6 +60,10 @@ void AAB_FluidExhuast::PullFluid(float dt) {
 
 		// do we like our new fluid
 		if (!isValidFluid(foundFluidType)) { return; }
+		EResourceForm newForm = UFGItemDescriptor::GetForm(foundFluidType);
+		if (cachedVentItem == NULL || UFGItemDescriptor::GetForm(cachedVentItem) != newForm) {
+			ExhaustFormUpdate(newForm);
+		}
 		cachedVentItem = foundFluidType;
 
 		// clean out
