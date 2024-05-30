@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AB_FluidExhuast.h"
+#include "ABFluidExhaust.h"
 #include "Math/UnrealMathUtility.h"
 
-void AAB_FluidExhuast::BeginPlay() {
+void AABFluidExhaust::BeginPlay() {
 	Super::BeginPlay();
 
 	inputConnection = GetComponentByClass<UFGPipeConnectionFactory>();
@@ -18,7 +18,7 @@ void AAB_FluidExhuast::BeginPlay() {
 }
 
 //
-TSubclassOf<class UFGItemDescriptor> AAB_FluidExhuast::GetCurrentVentItem() const {
+TSubclassOf<UFGItemDescriptor> AABFluidExhaust::GetVentItem_Current() const {
 	FInventoryStack stackTemp;
 	if (mInputInventory->GetStackFromIndex(0, stackTemp)) {
 		return stackTemp.Item.GetItemClass();
@@ -26,7 +26,7 @@ TSubclassOf<class UFGItemDescriptor> AAB_FluidExhuast::GetCurrentVentItem() cons
 	return NULL;
 }
 
-int AAB_FluidExhuast::GetStoredFluidCurrent() const {
+int AABFluidExhaust::GetStoredFluid_Current() const {
 	FInventoryStack stackTemp;
 	if (mInputInventory->GetStackFromIndex(0, stackTemp)) {
 		return stackTemp.NumItems;
@@ -34,12 +34,13 @@ int AAB_FluidExhuast::GetStoredFluidCurrent() const {
 	return 0;
 }
 
-int AAB_FluidExhuast::GetVentRateCurrent() const {
-	return bAutoRateVenting ? GetStoredFluidCurrent() : targetRateToVent;
+int AABFluidExhaust::GetVentRate_Display() const {
+	//if (GetLocalRole() == ENetRole::ROLE_Authority) {
+	return bAutoRateVenting ? GetStoredFluid_Current() : targetRateToVent; // TODO: correct how this is done
 }
 
 //
-void AAB_FluidExhuast::Factory_Tick(float dt) {
+void AABFluidExhaust::Factory_Tick(float dt) {
 	// investigate to see if we should pull fluid
 	if (inputConnection->IsConnected()) {
 		PullFluid(dt);
@@ -49,10 +50,12 @@ void AAB_FluidExhuast::Factory_Tick(float dt) {
 	VentFluid(dt);
 }
 
-void AAB_FluidExhuast::PullFluid(float dt) {
+void AABFluidExhaust::PullFluid(float dt) {
 	TSubclassOf<UFGItemDescriptor> foundFluidType = inputConnection->GetFluidDescriptor();
 
 	if (foundFluidType == NULL) { return; }
+
+	int currentStore = GetStoredFluid_Current();
 
 	// if it's a new fluid wait until we're empty to pull
 	if (foundFluidType != cachedVentItem) {
@@ -60,22 +63,20 @@ void AAB_FluidExhuast::PullFluid(float dt) {
 
 		// do we like our new fluid
 		if (!isValidFluid(foundFluidType)) { return; }
-		EResourceForm newForm = UFGItemDescriptor::GetForm(foundFluidType);
-		if (cachedVentItem == NULL || UFGItemDescriptor::GetForm(cachedVentItem) != newForm) {
-			ExhaustFormUpdate(newForm);
-		}
+		ExhaustFluidUpdate(foundFluidType);
 		cachedVentItem = foundFluidType;
 
 		// clean out
-		if (GetStoredFluidCurrent() > 0) {
+		if (currentStore > 0) {
 			mInputInventory->RemoveAllFromIndex(0);
+			currentStore = 0;
 		}
 		//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ TurboSuck Now: %s"), *UFGItemDescriptor::GetItemName(cachedVentItem).ToString());
 	}
 
 	// measure pull
-	int pullCount = FMath::CeilToInt(10000 * dt); // 600/min
-	int currentSpace = storageOverride - GetStoredFluidCurrent();
+	int pullCount = FMath::CeilToInt(10000 * dt); // 600/min adjusted for DeltaT
+	int currentSpace = storageOverride - currentStore;
 	if (pullCount > currentSpace) {
 		pullCount = currentSpace;
 		//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ MaxSpace: %d"), currentSpace);
@@ -92,15 +93,16 @@ void AAB_FluidExhuast::PullFluid(float dt) {
 	}
 }
 
-void AAB_FluidExhuast::VentFluid(float dt) {
+void AABFluidExhaust::VentFluid(float dt) {
 	if (mInputInventory->IsIndexEmpty(0)) {
 		bActiveVenting = false;
 		//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ EMPTY"));
 		return;
 	}
-	
-	int ventCount = FMath::CeilToInt((GetVentRateCurrent() / 60.0f) * dt);
-	int currentStore = GetStoredFluidCurrent();
+
+	int currentStore = GetStoredFluid_Current();
+	int ventCount = bAutoRateVenting ? currentStore : targetRateToVent;
+	ventCount = FMath::CeilToInt((ventCount / 60.0f) * dt); // correct for DeltaT
 	if (ventCount <= 0) {
 		ventCount = 1;
 	}
@@ -115,7 +117,7 @@ void AAB_FluidExhuast::VentFluid(float dt) {
 	//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ VentCount: %d"), ventCount);
 }
 
-bool AAB_FluidExhuast::isValidFluid(TSubclassOf<class UFGItemDescriptor> item) {
+bool AABFluidExhaust::isValidFluid(TSubclassOf<UFGItemDescriptor> item) {
 	if (!bRequireSafeVent) { return true; }
 	return safeItems.Contains(item);
 }
