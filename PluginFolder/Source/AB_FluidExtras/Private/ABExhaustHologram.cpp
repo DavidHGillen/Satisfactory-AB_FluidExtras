@@ -15,10 +15,10 @@ bool AABExhaustHologram::IsValidHitResult(const FHitResult& hitResult) const {
 void AABExhaustHologram::GetSupportedBuildModes_Implementation(TArray<TSubclassOf<UFGBuildGunModeDescriptor>>& out_buildmodes) const {
 	Super::GetSupportedBuildModes_Implementation(out_buildmodes);
 
-	/*for (int i = 0; safteyChecks.Num(); i++) {
+	for (int i = 0, l = safteyChecks.Num(); i < l; i++) {
 		AABExhaustSafteyCheck* check = safteyChecks[i].GetDefaultObject();
 		if (check->modeDescriptor) { out_buildmodes.AddUnique(check->modeDescriptor); }
-	}*/
+	}
 }
 
 void AABExhaustHologram::OnBuildModeChanged(TSubclassOf<UFGHologramBuildModeDescriptor> buildMode) {
@@ -28,9 +28,9 @@ void AABExhaustHologram::OnBuildModeChanged(TSubclassOf<UFGHologramBuildModeDesc
 	}
 
 	// add new build mode actors
-	/*for (int i = 0; safteyChecks.Num(); i++) {
+	for (int i = 0, l = safteyChecks.Num(); i < l; i++) {
 		AABExhaustSafteyCheck* check = safteyChecks[i].GetDefaultObject();
-	}*/
+	}
 
 	Super::OnBuildModeChanged(buildMode);
 }
@@ -62,7 +62,7 @@ void AABExhaustHologram::ConfigureComponents(AFGBuildable* inBuildable) const {
 
 // custom:
 bool AABExhaustHologram::PerformSafteyChecks() {
-	for (int i = 0; safteyChecks.Num(); i++) {
+	for (int i = 0, l = safteyChecks.Num(); i < l; i++) {
 		//FAB_ExhaustSafteyCheck check = safteyChecks[i];
 		//check.safteyCheckActor->PerformSafteyCheck();
 	}
