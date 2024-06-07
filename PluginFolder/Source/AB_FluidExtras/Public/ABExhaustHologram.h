@@ -54,15 +54,23 @@ public:
 	TArray< TSubclassOf<AABExhaustSafteyCheck> > safteyChecks;
 
 protected:
+	// if we snapped to something, track it to connect when built
+	UFGPipeConnectionComponentBase* mSnappedPipeConnection = NULL;
+
 	// current build mode as per saftey check index, -1 being all checks.
 	int buildmodeSelector = -1;
+
+	// do a 180 rotation about what we're placed on
+	bool bFlippedSnap = false;
 
 public:
 	// FactoryGame:
 	virtual void GetSupportedBuildModes_Implementation(TArray<TSubclassOf<UFGBuildGunModeDescriptor>>& out_buildmodes) const override;
-	virtual bool IsValidHitResult(const FHitResult& hitResult) const override;
 	virtual void OnBuildModeChanged(TSubclassOf<UFGHologramBuildModeDescriptor> buildMode) override;
+	virtual bool IsValidHitResult(const FHitResult& hitResult) const override;
+	virtual bool TrySnapToActor(const FHitResult& hitResult) override;
 	virtual void SetHologramLocationAndRotation(const FHitResult& hitResult) override;
+	virtual void CheckValidPlacement() override;
 
 protected:
 	virtual USceneComponent* SetupComponent(USceneComponent* attachParent, UActorComponent* componentTemplate, const FName& componentName, const FName& attachSocketName) override;
