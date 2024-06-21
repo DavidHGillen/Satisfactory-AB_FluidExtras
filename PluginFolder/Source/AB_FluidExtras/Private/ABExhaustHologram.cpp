@@ -10,6 +10,10 @@
 #include "Buildables/FGBuildablePipeline.h"
 #include "Buildables/FGBuildableRailroadTrack.h"
 
+AABExhaustHologram::AABExhaustHologram() {
+	mCanBePlacedInBlueprintDesigner = false; // TODO: this is gross and agressive, figure out a better solution
+}
+
 // factory game
 void AABExhaustHologram::GetSupportedBuildModes_Implementation(TArray<TSubclassOf<UFGBuildGunModeDescriptor>>& out_buildmodes) const {
 	Super::GetSupportedBuildModes_Implementation(out_buildmodes);
@@ -39,20 +43,24 @@ bool AABExhaustHologram::IsValidHitResult(const FHitResult& hitResult) const {
 		return false;
 	}
 
-	if (Cast<AFGBuildableWall>(hitResult.GetActor()) != NULL) {
-		return true;
-	}
-
-	if (Cast<AFGBuildablePipeline>(hitResult.GetActor()) != NULL) {
+	if (Cast<AFGBuildableWall>(hitResult.GetActor()) != NULL ||
+	    Cast<AFGBuildablePipeline>(hitResult.GetActor()) != NULL
+	) {
 		return true;
 	}
 
 	return Super::IsValidHitResult(hitResult);
 }
 
+bool AABExhaustHologram::CanNudgeHologram() const {
+	return mSnappedPipeConnection == NULL;
+}
+
 bool AABExhaustHologram::TrySnapToActor(const FHitResult& hitResult) {
 	AActor* hitActor = hitResult.GetActor();
 	const float snapTolerance = 200.0f;
+	mSnappedPipeConnection = NULL;
+	mSnappedBuilding = NULL;
 
 	// pipeline end snapping
 	AFGBuildablePipeline* hitPipeline = Cast<AFGBuildablePipeline>(hitActor);
@@ -71,24 +79,23 @@ bool AABExhaustHologram::TrySnapToActor(const FHitResult& hitResult) {
 		}
 
 		if (mSnappedPipeConnection != NULL) {
+			mSnappedBuilding = hitPipeline;
 			SetActorTransform(mSnappedPipeConnection->GetComponentTransform());
 			return true;
 		}
 
-		mSnappedPipeConnection = NULL;
 		return false; // avoids running snap code when we already know
 	}
 
-	mSnappedPipeConnection = NULL;
 	return Super::TrySnapToActor(hitResult);
 }
 
 void AABExhaustHologram::SetHologramLocationAndRotation(const FHitResult& hitResult) {
-	FRotator outRotation = FRotator::ZeroRotator;
-	FVector outLocation = FVector::Zero();
 	AActor* hitActor = hitResult.GetActor();
 
-	UE_LOG(LogTemp, Warning, TEXT("~~~~ ~~~~ ~~~~"));
+	FVector localHitNormal = hitActor->GetTransform().Inverse().TransformVector(hitResult.ImpactNormal);
+	FRotator outRotation = FRotator::ZeroRotator;
+	FVector outLocation = FVector::Zero();
 
 	// wall placement
 	AFGBuildableWall* hitWall = Cast<AFGBuildableWall>(hitActor);
@@ -107,11 +114,10 @@ void AABExhaustHologram::SetHologramLocationAndRotation(const FHitResult& hitRes
 	// foundations enable side snapping and handle underside snapping
 	AFGBuildableFoundation* hitFoundation = Cast<AFGBuildableFoundation>(hitActor);
 	if (hitFoundation != NULL) {
-
 		// foundation side
-		if (FMath::Abs(hitResult.ImpactNormal.GetAbs().Z) <= 0.48f) {
+		if (FMath::Abs(hitResult.ImpactNormal.Z) <= 0.48f) {
 			outLocation = hitResult.ImpactPoint;
-			SnapToFoundationSide(hitFoundation, hitResult.ImpactNormal, EAxis::X, outLocation, outRotation);
+			SnapToFoundationSide(hitFoundation, localHitNormal, EAxis::X, outLocation, outRotation);
 			SetActorLocationAndRotation(outLocation, outRotation);
 			AddActorWorldOffset(FVector(0.0f, 0.0f, -25.0f));
 			return;
@@ -132,22 +138,27 @@ void AABExhaustHologram::SetHologramLocationAndRotation(const FHitResult& hitRes
 }
 
 void AABExhaustHologram::CheckValidPlacement() {
-	mCanBePlacedInBlueprintDesigner = false; // TODO: this is gross and agressive, figure out better solution
-
 	Super::CheckValidPlacement();
 	UE_LOG(LogTemp, Warning, TEXT("~~~~ CheckValidPlacement"));
 	PerformSafteyChecks();
 }
 
-USceneComponent* AABExhaustHologram::SetupComponent(USceneComponent* attachParent, UActorComponent* componentTemplate, const FName& componentName, const FName& attachSocketName) {
-	return Super::SetupComponent(attachParent, componentTemplate, componentName, attachSocketName);
-}
-
 void AABExhaustHologram::ConfigureActor(AFGBuildable* inBuildable) const {
+	AABFluidExhaust* exhaust = Cast<AABFluidExhaust>(inBuildable);
 	Super::ConfigureActor(inBuildable);
+
+	// distance
+	// safe items
 }
 
 void AABExhaustHologram::ConfigureComponents(AFGBuildable* inBuildable) const {
+	if (mSnappedPipeConnection != NULL) {
+		UFGPipeConnectionFactory* connection = inBuildable->GetComponentByClass<UFGPipeConnectionFactory>();
+		AFGBuildablePipeline* snappedPipeline = Cast<AFGBuildablePipeline>(mSnappedBuilding);
+		connection->SetConnection(mSnappedPipeConnection);
+		connection->SetFluidDescriptor(snappedPipeline->GetFluidDescriptor());
+	}
+
 	Super::ConfigureComponents(inBuildable);
 }
 

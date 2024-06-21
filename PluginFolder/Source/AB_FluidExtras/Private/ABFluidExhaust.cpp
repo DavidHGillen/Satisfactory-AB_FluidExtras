@@ -41,6 +41,8 @@ int AABFluidExhaust::GetVentRate_Display() const {
 
 //
 void AABFluidExhaust::Factory_Tick(float dt) {
+	UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ TICK! "));
+
 	// investigate to see if we should pull fluid
 	if (inputConnection->IsConnected()) {
 		PullFluid(dt);
@@ -52,8 +54,11 @@ void AABFluidExhaust::Factory_Tick(float dt) {
 
 void AABFluidExhaust::PullFluid(float dt) {
 	TSubclassOf<UFGItemDescriptor> foundFluidType = inputConnection->GetFluidDescriptor();
+	UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ PULL? "));
 
 	if (foundFluidType == NULL) { return; }
+
+	UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ PULL! "));
 
 	int currentStore = GetStoredFluid_Current();
 

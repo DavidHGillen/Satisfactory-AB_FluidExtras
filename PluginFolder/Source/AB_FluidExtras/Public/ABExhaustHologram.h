@@ -7,7 +7,10 @@
 
 #include "ABExhaustHologram.generated.h"
 
-// Abstract class for BP implemntation of checks //
+/**
+ * Abstract class for BP implemntation of checks
+ * BP implemntation gives better control to this and other mods
+ */
 UCLASS(BlueprintType, Abstract, Category = "Exhaust System")
 class AABExhaustSafteyCheck : public AActor {
 	GENERATED_BODY()
@@ -43,11 +46,14 @@ public:
 
 /**
  * Perform the necessary saftey checks and pipeline attachment of the exhaust building
- * Has a build mode per saftey check and an all check mode (-1), tracked per index
+ * May have a collection or singular saftey check to visualize, all checks will be run at construction
+ * Has a build mode per saftey check which are tracked per index, -1 indicates all checks
  */
 UCLASS(Category = "Exhaust System")
 class AB_FLUIDEXTRAS_API AABExhaustHologram : public AFGBuildableHologram {
 	GENERATED_BODY()
+
+	AABExhaustHologram();
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System")
@@ -68,12 +74,12 @@ public:
 	virtual void GetSupportedBuildModes_Implementation(TArray<TSubclassOf<UFGBuildGunModeDescriptor>>& out_buildmodes) const override;
 	virtual void OnBuildModeChanged(TSubclassOf<UFGHologramBuildModeDescriptor> buildMode) override;
 	virtual bool IsValidHitResult(const FHitResult& hitResult) const override;
+	virtual bool CanNudgeHologram() const override;
 	virtual bool TrySnapToActor(const FHitResult& hitResult) override;
 	virtual void SetHologramLocationAndRotation(const FHitResult& hitResult) override;
 	virtual void CheckValidPlacement() override;
 
 protected:
-	virtual USceneComponent* SetupComponent(USceneComponent* attachParent, UActorComponent* componentTemplate, const FName& componentName, const FName& attachSocketName) override;
 	virtual void ConfigureActor(class AFGBuildable* inBuildable) const;
 	virtual void ConfigureComponents(class AFGBuildable* inBuildable) const;
 

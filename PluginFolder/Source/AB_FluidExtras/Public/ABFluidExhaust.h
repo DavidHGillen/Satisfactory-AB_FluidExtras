@@ -77,6 +77,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
 	virtual int GetStoredFluid_Current() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
+	UFGPipeConnectionFactory* GetInputConnection() const { return inputConnection; };
+
 public:
 	void BeginPlay();
 
