@@ -58,7 +58,7 @@ protected:
 	// are we venting now
 	bool bActiveVenting = false;
 
-	// may not be valid at some moments so don't use it in the getter when we can't tell when it will be running
+	// may not be valid at some moments so don't use it in the descriptor getter when we can't tell when it will be running
 	TSubclassOf<UFGItemDescriptor> cachedVentItem;
 
 	UPROPERTY(SaveGame)

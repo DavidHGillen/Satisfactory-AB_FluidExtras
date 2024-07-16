@@ -5,6 +5,7 @@
 #include "Math/UnrealMathUtility.h"
 #include "FGConstructDisqualifier.h"
 
+#include "FGPipeSubsystem.h"
 #include "Buildables/FGBuildableWall.h"
 #include "Buildables/FGBuildableRamp.h"
 #include "Buildables/FGBuildablePipeline.h"
@@ -153,10 +154,10 @@ void AABExhaustHologram::ConfigureActor(AFGBuildable* inBuildable) const {
 
 void AABExhaustHologram::ConfigureComponents(AFGBuildable* inBuildable) const {
 	if (mSnappedPipeConnection != NULL) {
+		AFGPipeSubsystem* pipeSubsys = AFGPipeSubsystem::GetPipeSubsystem(GetWorld());
 		UFGPipeConnectionFactory* connection = inBuildable->GetComponentByClass<UFGPipeConnectionFactory>();
-		AFGBuildablePipeline* snappedPipeline = Cast<AFGBuildablePipeline>(mSnappedBuilding);
 		connection->SetConnection(mSnappedPipeConnection);
-		connection->SetFluidDescriptor(snappedPipeline->GetFluidDescriptor());
+		pipeSubsys->RegisterFluidIntegrant(connection);
 	}
 
 	Super::ConfigureComponents(inBuildable);

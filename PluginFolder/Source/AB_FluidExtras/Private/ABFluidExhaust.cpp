@@ -7,6 +7,8 @@
 void AABFluidExhaust::BeginPlay() {
 	Super::BeginPlay();
 
+	bActiveVenting = false;
+
 	inputConnection = GetComponentByClass<UFGPipeConnectionFactory>();
 
 	if (GetLocalRole() == ENetRole::ROLE_Authority) {
@@ -41,8 +43,6 @@ int AABFluidExhaust::GetVentRate_Display() const {
 
 //
 void AABFluidExhaust::Factory_Tick(float dt) {
-	UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ TICK! "));
-
 	// investigate to see if we should pull fluid
 	if (inputConnection->IsConnected()) {
 		PullFluid(dt);
@@ -76,7 +76,6 @@ void AABFluidExhaust::PullFluid(float dt) {
 			mInputInventory->RemoveAllFromIndex(0);
 			currentStore = 0;
 		}
-		//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ TurboSuck Now: %s"), *UFGItemDescriptor::GetItemName(cachedVentItem).ToString());
 	}
 
 	// measure pull
@@ -84,7 +83,6 @@ void AABFluidExhaust::PullFluid(float dt) {
 	int currentSpace = storageOverride - currentStore;
 	if (pullCount > currentSpace) {
 		pullCount = currentSpace;
-		//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ MaxSpace: %d"), currentSpace);
 	}
 
 	// perform pull
@@ -94,7 +92,6 @@ void AABFluidExhaust::PullFluid(float dt) {
 		if (tempStack.NumItems > 0) {
 			mInputInventory->AddStackToIndex(0, tempStack);
 		}
-		//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ PipePull: %d"), pullCount);
 	}
 }
 
