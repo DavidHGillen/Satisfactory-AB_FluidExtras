@@ -19,8 +19,8 @@ AABExhaustHologram::AABExhaustHologram() {
 void AABExhaustHologram::GetSupportedBuildModes_Implementation(TArray<TSubclassOf<UFGBuildGunModeDescriptor>>& out_buildmodes) const {
 	Super::GetSupportedBuildModes_Implementation(out_buildmodes);
 
-	for (int i = 0, l = safteyChecks.Num(); i < l; i++) {
-		AABExhaustSafteyCheck* check = safteyChecks[i].GetDefaultObject();
+	for (int i = 0, l = visualizers.Num(); i < l; i++) {
+		AABExhaustVisualizer* check = visualizers[i].GetDefaultObject();
 		if (check->modeDescriptor) { out_buildmodes.AddUnique(check->modeDescriptor); }
 	}
 }
@@ -32,8 +32,8 @@ void AABExhaustHologram::OnBuildModeChanged(TSubclassOf<UFGHologramBuildModeDesc
 	}
 
 	// add new build mode actors
-	for (int i = 0, l = safteyChecks.Num(); i < l; i++) {
-		AABExhaustSafteyCheck* check = safteyChecks[i].GetDefaultObject();
+	for (int i = 0, l = visualizers.Num(); i < l; i++) {
+		AABExhaustVisualizer* check = visualizers[i].GetDefaultObject();
 	}
 
 	Super::OnBuildModeChanged(buildMode);
@@ -141,7 +141,7 @@ void AABExhaustHologram::SetHologramLocationAndRotation(const FHitResult& hitRes
 void AABExhaustHologram::CheckValidPlacement() {
 	Super::CheckValidPlacement();
 	UE_LOG(LogTemp, Warning, TEXT("~~~~ CheckValidPlacement"));
-	PerformSafteyChecks();
+	//AABFluidExhaust::PerformSafteyChecks();
 }
 
 void AABExhaustHologram::ConfigureActor(AFGBuildable* inBuildable) const {
@@ -161,13 +161,4 @@ void AABExhaustHologram::ConfigureComponents(AFGBuildable* inBuildable) const {
 	}
 
 	Super::ConfigureComponents(inBuildable);
-}
-
-// custom:
-bool AABExhaustHologram::PerformSafteyChecks() {
-	for (int i = 0, l = safteyChecks.Num(); i < l; i++) {
-		//FAB_ExhaustSafteyCheck check = safteyChecks[i];
-		//check.safteyCheckActor->PerformSafteyCheck();
-	}
-	return true;
 }

@@ -19,7 +19,6 @@ void AABFluidExhaust::BeginPlay() {
 	}
 }
 
-//
 TSubclassOf<UFGItemDescriptor> AABFluidExhaust::GetVentItem_Current() const {
 	FInventoryStack stackTemp;
 	if (mInputInventory->GetStackFromIndex(0, stackTemp)) {
@@ -41,8 +40,9 @@ int AABFluidExhaust::GetVentRate_Display() const {
 	return bAutoRateVenting ? GetStoredFluid_Current() : targetRateToVent; // TODO: correct how this is done
 }
 
-//
 void AABFluidExhaust::Factory_Tick(float dt) {
+	//TODO: sfatey check logic!
+
 	// investigate to see if we should pull fluid
 	if (inputConnection->IsConnected()) {
 		PullFluid(dt);
@@ -67,8 +67,9 @@ void AABFluidExhaust::PullFluid(float dt) {
 		if (bActiveVenting) { return; }
 
 		// do we like our new fluid
-		if (!isValidFluid(foundFluidType)) { return; }
-		ExhaustFluidUpdate(foundFluidType);
+		TSubclassOf<AABExhaustVisualizer> viz = GetRelevantVisualizer(vizualizers, foundFluidType);
+		if (viz == NULL) { return; }
+		ExhaustFluidUpdate(foundFluidType, viz);
 		cachedVentItem = foundFluidType;
 
 		// clean out
@@ -106,7 +107,7 @@ void AABFluidExhaust::VentFluid(float dt) {
 	int ventCount = bAutoRateVenting ? currentStore : targetRateToVent;
 	ventCount = FMath::CeilToInt((ventCount / 60.0f) * dt); // correct for DeltaT
 	if (ventCount <= 0) {
-		ventCount = 1;
+		ventCount = 1; //TODO: consider partials accumulation
 	}
 	if (ventCount > currentStore) {
 		ventCount = currentStore;
@@ -120,6 +121,20 @@ void AABFluidExhaust::VentFluid(float dt) {
 }
 
 bool AABFluidExhaust::isValidFluid(TSubclassOf<UFGItemDescriptor> item) {
-	if (!bRequireSafeVent) { return true; }
-	return safeItems.Contains(item);
+	return GetRelevantVisualizer(vizualizers, item) != NULL;
+}
+
+// static //
+
+/**
+ * Utility function for checking vizualizers against item type.
+ * Importantly it reutrns the first result traversing the array backwards.
+ * Use this behaviour to prioritize more specific/important vizualizers
+ */
+TSubclassOf<AABExhaustVisualizer> AABFluidExhaust::GetRelevantVisualizer(TArray< TSubclassOf<AABExhaustVisualizer> > visualizers, TSubclassOf<UFGItemDescriptor> item) {
+	for (int i = visualizers.Num() - 1; i >= 0; i--) {
+		AABExhaustVisualizer* viz = Cast< AABExhaustVisualizer>(visualizers[i]->GetDefaultObject());
+		if(viz != NULL && viz->RelevantItem(item)) { return visualizers[i]; }
+	}
+	return NULL;
 }

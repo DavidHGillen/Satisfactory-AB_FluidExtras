@@ -9,6 +9,8 @@
 #include "Buildables/FGBuildableFactory.h"
 #include "Replication/FGReplicationDetailInventoryComponent.h"
 
+#include "ABExhaustVisualizer.h"
+
 #include "ABFluidExhaust.generated.h"
 
 /**
@@ -21,30 +23,19 @@ class AB_FLUIDEXTRAS_API AABFluidExhaust : public AFGBuildableFactory {
 public:
 	// class info //
 
-	// what should include a damage zone where it's venting, and how much damage
-	UPROPERTY(EditDefaultsOnly, Category = "Exhaust System")
-	TMap< TSubclassOf<UFGItemDescriptor>, float > dangerousItems;
-
-	// limit the venting behaviour to only situations that are "safe"
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
-	bool bRequireSafeVent;
+	// ordered list of which vizualizers this should consider, later items will be checked first
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System")
+	TArray< TSubclassOf<AABExhaustVisualizer> > vizualizers;
 
 	// maximum storage override value
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
 	int storageOverride;
 
+	// how often to recheck
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
-	TMap<EResourceForm, UNiagaraSystem*> formToParticleFX;
+	float safteyInspectionFrequency;
 
 	// instance specific //
-
-	// length of the space the venting will fill, suggested by the hologram, tested on every load
-	UPROPERTY(BlueprintReadOnly, /*Replicated,*/ Category = "Exhaust System|Instance")
-	float distance;
-
-	// what the placed vent can safely do, suggested by the hologram, tested on every load
-	UPROPERTY(BlueprintReadOnly, /*Replicated,*/ Category = "Exhaust System|Instance")
-	TArray< TSubclassOf<UFGItemDescriptor> > safeItems; 
 
 	// vent 100% of storage per minute or try to hit a specific ammount
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust System|Instance")
@@ -53,6 +44,14 @@ public:
 	// what the specific drain rate is if we're not calculating it automatically
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust System|Instance")
 	int targetRateToVent;
+
+	// how often to recheck
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, /*Replicated,*/ Category = "Exhaust System|Instance")
+	float timeToSafteyInspection;
+
+	// current vizualizer
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, /*Replicated,*/ Category = "Exhaust System|Instance")
+	AABExhaustVisualizer* activeVizualizer;
 
 protected:
 	// are we venting now
@@ -83,8 +82,9 @@ public:
 public:
 	void BeginPlay();
 
+	// handoff to the Blueprint to do actor swapping and initalization etc
 	UFUNCTION(BlueprintImplementableEvent)
-	void ExhaustFluidUpdate(TSubclassOf<UFGItemDescriptor> newFluid);
+	void ExhaustFluidUpdate(TSubclassOf<UFGItemDescriptor> newFluid, TSubclassOf<AABExhaustVisualizer> newVizualizer);
 
 protected:
 	virtual void Factory_Tick(float dt) override;
@@ -97,4 +97,8 @@ protected:
 	virtual void PullFluid(float dt);
 	virtual void VentFluid(float dt);
 	virtual bool isValidFluid(TSubclassOf<UFGItemDescriptor> item);
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Exhaust System")
+	static TSubclassOf<AABExhaustVisualizer> GetRelevantVisualizer(TArray< TSubclassOf<AABExhaustVisualizer> > visualizers, TSubclassOf<UFGItemDescriptor> item);
 };

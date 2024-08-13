@@ -5,44 +5,9 @@
 #include "CoreMinimal.h"
 #include "Hologram/FGBuildableHologram.h"
 
+#include "ABExhaustVisualizer.h"
+
 #include "ABExhaustHologram.generated.h"
-
-/**
- * Abstract class for BP implemntation of checks
- * BP implemntation gives better control to this and other mods
- */
-UCLASS(BlueprintType, Abstract, Category = "Exhaust System")
-class AABExhaustSafteyCheck : public AActor {
-	GENERATED_BODY()
-
-public:
-	// what items this saftey check pertains too
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System")
-	TArray< TSubclassOf<UFGItemDescriptor> > allowedItems;
-
-	// what to show when switching modes
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
-	TSubclassOf<UFGBuildGunModeDescriptor> modeDescriptor;
-
-	// what to say when this check passes
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
-	FText successMsg;
-
-	// what to say when this check fails
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
-	FText failureMsg;
-
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
-	void EnableSafteyCheck(AFGBuildableHologram* target);
-
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
-	bool PerformSafteyCheck(AFGBuildableHologram* target);
-
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
-	void RemoveSafteyCheck(AFGBuildableHologram* target);
-};
-
-// Actual hologram class //
 
 /**
  * Perform the necessary saftey checks and pipeline attachment of the exhaust building
@@ -56,14 +21,15 @@ class AB_FLUIDEXTRAS_API AABExhaustHologram : public AFGBuildableHologram {
 	AABExhaustHologram();
 
 public:
+	// what are the relevant vizualizers for the exhaust
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System")
-	TArray< TSubclassOf<AABExhaustSafteyCheck> > safteyChecks;
+	TArray< TSubclassOf<AABExhaustVisualizer> > visualizers;
 
 protected:
 	// if we snapped to something, track it to connect when built
 	UFGPipeConnectionComponentBase* mSnappedPipeConnection = NULL;
 
-	// current build mode as per saftey check index, -1 being all checks.
+	// current vizualizer mode as per index, -1 being no specific vizualizer
 	int buildmodeSelector = -1;
 
 	// do a 180 rotation about what we're placed on
@@ -82,8 +48,4 @@ public:
 protected:
 	virtual void ConfigureActor(class AFGBuildable* inBuildable) const;
 	virtual void ConfigureComponents(class AFGBuildable* inBuildable) const;
-
-public:
-	// custom:
-	virtual bool PerformSafteyChecks();
 };
