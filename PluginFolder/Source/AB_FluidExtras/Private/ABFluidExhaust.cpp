@@ -67,9 +67,9 @@ void AABFluidExhaust::PullFluid(float dt) {
 		if (bActiveVenting) { return; }
 
 		// do we like our new fluid
-		TSubclassOf<AABExhaustVisualizer> viz = GetRelevantVisualizer(vizualizers, foundFluidType);
-		if (viz == NULL) { return; }
-		ExhaustFluidUpdate(foundFluidType, viz);
+		TSubclassOf<AABExhaustVisualizer> vis = GetRelevantVisualizer(visualizers, foundFluidType);
+		if (vis == NULL) { return; }
+		ExhaustFluidUpdate(foundFluidType, vis);
 		cachedVentItem = foundFluidType;
 
 		// clean out
@@ -121,20 +121,20 @@ void AABFluidExhaust::VentFluid(float dt) {
 }
 
 bool AABFluidExhaust::isValidFluid(TSubclassOf<UFGItemDescriptor> item) {
-	return GetRelevantVisualizer(vizualizers, item) != NULL;
+	return GetRelevantVisualizer(visualizers, item) != NULL;
 }
 
 // static //
 
 /**
- * Utility function for checking vizualizers against item type.
+ * Utility function for checking visualizers against item type.
  * Importantly it reutrns the first result traversing the array backwards.
- * Use this behaviour to prioritize more specific/important vizualizers
+ * Use this behaviour to prioritize more specific/important visualizers
  */
 TSubclassOf<AABExhaustVisualizer> AABFluidExhaust::GetRelevantVisualizer(TArray< TSubclassOf<AABExhaustVisualizer> > visualizers, TSubclassOf<UFGItemDescriptor> item) {
 	for (int i = visualizers.Num() - 1; i >= 0; i--) {
-		AABExhaustVisualizer* viz = Cast< AABExhaustVisualizer>(visualizers[i]->GetDefaultObject());
-		if(viz != NULL && viz->RelevantItem(item)) { return visualizers[i]; }
+		AABExhaustVisualizer* vis = Cast< AABExhaustVisualizer>(visualizers[i]->GetDefaultObject());
+		if(vis != NULL && vis->RelevantItem(item)) { return visualizers[i]; }
 	}
 	return NULL;
 }

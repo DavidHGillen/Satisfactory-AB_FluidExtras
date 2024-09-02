@@ -23,9 +23,9 @@ class AB_FLUIDEXTRAS_API AABFluidExhaust : public AFGBuildableFactory {
 public:
 	// class info //
 
-	// ordered list of which vizualizers this should consider, later items will be checked first
+	// ordered list of which visualizers this should consider, later items will be checked first
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System")
-	TArray< TSubclassOf<AABExhaustVisualizer> > vizualizers;
+	TArray< TSubclassOf<AABExhaustVisualizer> > visualizers;
 
 	// maximum storage override value
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
@@ -49,9 +49,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, /*Replicated,*/ Category = "Exhaust System|Instance")
 	float timeToSafteyInspection;
 
-	// current vizualizer
+	// current visualizer
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, /*Replicated,*/ Category = "Exhaust System|Instance")
-	AABExhaustVisualizer* activeVizualizer;
+	AABExhaustVisualizer* activeVisualizer;
 
 protected:
 	// are we venting now
@@ -84,7 +84,7 @@ public:
 
 	// handoff to the Blueprint to do actor swapping and initalization etc
 	UFUNCTION(BlueprintImplementableEvent)
-	void ExhaustFluidUpdate(TSubclassOf<UFGItemDescriptor> newFluid, TSubclassOf<AABExhaustVisualizer> newVizualizer);
+	void ExhaustFluidUpdate(TSubclassOf<UFGItemDescriptor> newFluid, TSubclassOf<AABExhaustVisualizer> newVisualizer);
 
 protected:
 	virtual void Factory_Tick(float dt) override;
@@ -100,5 +100,5 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System")
-	static TSubclassOf<AABExhaustVisualizer> GetRelevantVisualizer(TArray< TSubclassOf<AABExhaustVisualizer> > visualizers, TSubclassOf<UFGItemDescriptor> item);
+	static TSubclassOf<AABExhaustVisualizer> GetRelevantVisualizer(TArray< TSubclassOf<AABExhaustVisualizer> > testVisualizers, TSubclassOf<UFGItemDescriptor> item);
 };

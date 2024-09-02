@@ -21,7 +21,7 @@ class AB_FLUIDEXTRAS_API AABExhaustHologram : public AFGBuildableHologram {
 	AABExhaustHologram();
 
 public:
-	// what are the relevant vizualizers for the exhaust
+	// what are the relevant visualizers for the exhaust
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System")
 	TArray< TSubclassOf<AABExhaustVisualizer> > visualizers;
 
@@ -29,7 +29,7 @@ protected:
 	// if we snapped to something, track it to connect when built
 	UFGPipeConnectionComponentBase* mSnappedPipeConnection = NULL;
 
-	// current vizualizer mode as per index, -1 being no specific vizualizer
+	// current visualizer mode as per index, -1 being no specific visualizer
 	int buildmodeSelector = -1;
 
 	// do a 180 rotation about what we're placed on

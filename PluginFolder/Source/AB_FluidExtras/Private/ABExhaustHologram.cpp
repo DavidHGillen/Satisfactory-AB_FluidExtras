@@ -12,7 +12,6 @@
 #include "Buildables/FGBuildableRailroadTrack.h"
 
 AABExhaustHologram::AABExhaustHologram() {
-	mCanBePlacedInBlueprintDesigner = false; // TODO: this is gross and agressive, figure out a better solution
 }
 
 // factory game
