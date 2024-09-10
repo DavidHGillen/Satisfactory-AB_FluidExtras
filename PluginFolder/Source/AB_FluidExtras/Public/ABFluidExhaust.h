@@ -45,8 +45,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust System|Instance")
 	int targetRateToVent;
 
-	// how often to recheck
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, /*Replicated,*/ Category = "Exhaust System|Instance")
+	// how long to a check
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
 	float timeToSafteyInspection;
 
 	// current visualizer
@@ -94,6 +94,7 @@ protected:
 	//void StartProductionLoopEffects(bool didStartProducing);
 	//void StopProductionLoopEffects(bool didStopProducing);
 
+	virtual void UpdateFluid();
 	virtual void PullFluid(float dt);
 	virtual void VentFluid(float dt);
 	virtual bool isValidFluid(TSubclassOf<UFGItemDescriptor> item);

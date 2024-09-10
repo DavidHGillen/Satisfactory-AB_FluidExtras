@@ -8,7 +8,6 @@
 #include "ABExhaustVisualizer.generated.h"
 
 class AABExhaustHologram; //fwd dec
-class AABFluidExhaust; //fwd dec
 
 /**
  *
@@ -40,13 +39,13 @@ class AABExhaustVisualizer: public AActor {
 	GENERATED_BODY()
 
 public:
-	// the specific exhaust we're visualizing
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
-	AABFluidExhaust* ownedExhaust;
-
 	// a verbal explanation of the check result
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
-	FString checkStatus;
+	FString checkSuccessString;
+
+	// whether the check passed
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
+	bool checkSuccess;
 
 	// what to show when switching hologram modes to this
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
@@ -60,13 +59,17 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System", meta=( RowType="ABExhaustPlayerFX" ))
 	UDataTable* itemFXData;
 
-	// dose this item belong to this visualizer
+	// does this item belong to this visualizer
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
 	bool RelevantItem(TSubclassOf<UFGItemDescriptor> item);
 
 	// investigate the given position to see if it is valid
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
 	bool PerformSafteyCheck(FTransform testStart);
+
+	// provide an update to the visuals if needed
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
+	void UpdateVisuals(TSubclassOf<UFGItemDescriptor> item, float currentRate);
 
 	// add any lines or other stuff the hologram needs for visualization
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")

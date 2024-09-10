@@ -41,43 +41,48 @@ int AABFluidExhaust::GetVentRate_Display() const {
 }
 
 void AABFluidExhaust::Factory_Tick(float dt) {
-	//TODO: sfatey check logic!
+	// what fluid are we working with
+	if (!bActiveVenting) {
+		UpdateFluid();
+	}
+
+	// can we do anything
+	if (!activeVisualizer) { return; }
 
 	// investigate to see if we should pull fluid
 	if (inputConnection->IsConnected()) {
 		PullFluid(dt);
 	}
 
-	// handle venting of fluid we possess
-	VentFluid(dt);
+	// handle venting of fluid we possess if we're allowed
+	if (activeVisualizer->checkSuccess) {
+		VentFluid(dt);
+	}
+}
+
+void AABFluidExhaust::UpdateFluid() {
+	TSubclassOf<UFGItemDescriptor> foundFluidType = inputConnection->GetFluidDescriptor();
+
+	if (foundFluidType == cachedVentItem) { return; }
+
+	// do we like our new fluid
+	TSubclassOf<AABExhaustVisualizer> visClass = GetRelevantVisualizer(visualizers, foundFluidType);
+	cachedVentItem = foundFluidType;
+	ExhaustFluidUpdate(foundFluidType, visClass);
+
+	// if we've got no relevant visualizer don't clean up
+	if (visClass == NULL) { return; }
+
+	// clean out
+	int currentStore = GetStoredFluid_Current();
+	if (currentStore > 0) {
+		mInputInventory->RemoveAllFromIndex(0);
+		currentStore = 0;
+	}
 }
 
 void AABFluidExhaust::PullFluid(float dt) {
-	TSubclassOf<UFGItemDescriptor> foundFluidType = inputConnection->GetFluidDescriptor();
-	UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ PULL? "));
-
-	if (foundFluidType == NULL) { return; }
-
-	UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ PULL! "));
-
 	int currentStore = GetStoredFluid_Current();
-
-	// if it's a new fluid wait until we're empty to pull
-	if (foundFluidType != cachedVentItem) {
-		if (bActiveVenting) { return; }
-
-		// do we like our new fluid
-		TSubclassOf<AABExhaustVisualizer> vis = GetRelevantVisualizer(visualizers, foundFluidType);
-		if (vis == NULL) { return; }
-		ExhaustFluidUpdate(foundFluidType, vis);
-		cachedVentItem = foundFluidType;
-
-		// clean out
-		if (currentStore > 0) {
-			mInputInventory->RemoveAllFromIndex(0);
-			currentStore = 0;
-		}
-	}
 
 	// measure pull
 	int pullCount = FMath::CeilToInt(10000 * dt); // 600/min adjusted for DeltaT
@@ -99,7 +104,7 @@ void AABFluidExhaust::PullFluid(float dt) {
 void AABFluidExhaust::VentFluid(float dt) {
 	if (mInputInventory->IsIndexEmpty(0)) {
 		bActiveVenting = false;
-		//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ EMPTY"));
+		//UE_LOG(LogTemp, Warning, TEXT("~~~ EMPTY"));
 		return;
 	}
 
