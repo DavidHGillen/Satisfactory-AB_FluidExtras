@@ -7,7 +7,6 @@
 #include "FGInventoryLibrary.h"
 #include "FGPipeConnectionFactory.h"
 #include "Buildables/FGBuildableFactory.h"
-#include "Replication/FGReplicationDetailInventoryComponent.h"
 
 #include "ABExhaustVisualizer.h"
 
