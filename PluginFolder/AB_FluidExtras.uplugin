@@ -1,13 +1,13 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.0.2",
-	"SemVersion": "1.0.2",
+	"VersionName": "1.0.3",
+	"SemVersion": "1.0.3",
 	"FriendlyName": "Fluid Extras",
 	"Description": "Several new pipe junctions, alternate Mini Water Extractor, and new A.I. Packing machine.",
 	"Category": "Modding",
 	"CreatedBy": "AngryBeaver",
-	"CreatedByURL": "",
+	"CreatedByURL": "https://github.com/DavidHGillen/Satisfactory-AB_FluidExtras",
 	"DocsURL": "",
 	"MarketplaceURL": "",
 	"SupportURL": "",
@@ -15,6 +15,7 @@
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
+	"GameVersion": ">=365306",
 	"Modules": [
 		{
 			"Name": "AB_FluidExtras",
@@ -25,9 +26,8 @@
 	"Plugins": [
 		{
 			"Name": "SML",
-			"SemVersion": "^3.7.0",
-			"bIsOptional": false,
-			"Enabled": true
+			"Enabled": true,
+			"SemVersion": "^3.8.0"
 		}
 	]
 }

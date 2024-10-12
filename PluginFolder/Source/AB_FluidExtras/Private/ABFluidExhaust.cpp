@@ -84,6 +84,8 @@ void AABFluidExhaust::UpdateFluid() {
 void AABFluidExhaust::PullFluid(float dt) {
 	int currentStore = GetStoredFluid_Current();
 
+	UE_LOG(LogTemp, Warning, TEXT("~~~ Pull"));
+
 	// measure pull
 	int pullCount = FMath::CeilToInt(10000 * dt); // 600/min adjusted for DeltaT
 	int currentSpace = storageOverride - currentStore;
@@ -104,7 +106,7 @@ void AABFluidExhaust::PullFluid(float dt) {
 void AABFluidExhaust::VentFluid(float dt) {
 	if (mInputInventory->IsIndexEmpty(0)) {
 		bActiveVenting = false;
-		//UE_LOG(LogTemp, Warning, TEXT("~~~ EMPTY"));
+		UE_LOG(LogTemp, Warning, TEXT("~~~ EMPTY"));
 		return;
 	}
 
@@ -122,7 +124,7 @@ void AABFluidExhaust::VentFluid(float dt) {
 		bActiveVenting = true;
 		mInputInventory->RemoveFromIndex(0, ventCount);
 	}
-	//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ VentCount: %d"), ventCount);
+	UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ VentCount: %d"), ventCount);
 }
 
 bool AABFluidExhaust::isValidFluid(TSubclassOf<UFGItemDescriptor> item) {
