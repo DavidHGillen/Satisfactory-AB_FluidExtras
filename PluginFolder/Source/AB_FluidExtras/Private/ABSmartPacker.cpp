@@ -2,33 +2,26 @@
 
 #include "ABSmartPacker.h"
 
-// Satic init
-//////////////////////////////////////////////////////
-float AABSmartPacker::lastRecipeCache = 0.0f;
+// init
+float AABSmartPacker::nextRecipeCache = -1.0f;
 TArray< TSubclassOf<class UFGRecipe> > AABSmartPacker::recipeCache;
-TSubclassOf<UObject> AABSmartPacker::vanillaPacker = nullptr;
 
-// Ctor
-//////////////////////////////////////////////////////
 AABSmartPacker::AABSmartPacker() {
-	if (vanillaPacker == nullptr) {
-		vanillaPacker = ConstructorHelpers::FClassFinder<UObject>(
-			TEXT("/Game/FactoryGame/Buildable/Factory/Packager/Build_Packager.Build_Packager_C")
-		).Class;
-	}
-
 	currentFluidIn = nullptr;
 	currentSolidIn = nullptr;
 }
 
 // Factory interface
-//////////////////////////////////////////////////////
 void AABSmartPacker::Factory_Tick(float dt) {
 	if (GetLocalRole() == ENetRole::ROLE_Authority) {
+		//UE_LOG(LogTemp, Warning, TEXT("[ ] Its my job"));
 		if (!CanProduce()) {
+			//UE_LOG(LogTemp, Warning, TEXT("[ ] Can't Produce"));
 			FindRecipeFromInputs();
 		}
-	}
+	}/* else {
+		UE_LOG(LogTemp, Warning, TEXT("[ ] Not my job"));
+	}*/
 
 	Super::Factory_Tick(dt);
 }
@@ -39,29 +32,26 @@ bool AABSmartPacker::IsConfigured() const {
 }
 
 // Custom
-//////////////////////////////////////////////////////
 void AABSmartPacker::tryUpdateRecipeCache(UWorld* world) {
 	// time limit function
 	float now = world->GetRealTimeSeconds();
-	if (now < lastRecipeCache + 15.0f) { return; }
-	lastRecipeCache = now;
+	if (now < nextRecipeCache) { return; }
+	nextRecipeCache = now + 15.0f;
 
 	// set recipes on cache
 	AFGRecipeManager::Get(world)->GetAvailableRecipesForProducer(vanillaPacker, recipeCache);
 
-	//UE_LOG(LogTemp, Warning, TEXT("Updating smart packer recipe cache [ %d ] Recipes found"), recipeCache.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("[ ] Updating smart packer recipe cache [ %d ] Recipes found"), recipeCache.Num());
 }
 
 void AABSmartPacker::FindRecipeFromInputs() {
-	TSubclassOf<UFGItemDescriptor> foundFluid;
-	TSubclassOf<UFGItemDescriptor> foundSolid;
 	TSubclassOf<UFGItemDescriptor> beltIncoming = nullptr;
 
 	// fluid
 	if (mPipeInputConnections.Num() > 0) {
-		foundFluid = mPipeInputConnections[0]->GetFluidDescriptor();
+		currentFluidIn = mPipeInputConnections[0]->GetFluidDescriptor();
 	} else {
-		foundFluid = nullptr;
+		currentFluidIn = nullptr;
 	}
 	
 	// solid
@@ -73,23 +63,20 @@ void AABSmartPacker::FindRecipeFromInputs() {
 			beltIncoming = peekResult[0].GetItemClass();
 		}
 
-		foundSolid = beltIncoming;
+		currentSolidIn = beltIncoming;
 	} else {
-		foundSolid = nullptr;
+		currentSolidIn = nullptr;
 	}
 
-	// filter
-	if (foundFluid == currentFluidIn && foundSolid == currentSolidIn) { return; }
-	currentFluidIn = foundFluid;
-	currentSolidIn = foundSolid;
-
-	//UE_LOG(LogTemp, Warning, TEXT("INPUTS: %s - %s"), *UFGItemDescriptor::GetItemName(currentFluidIn).ToString(), *UFGItemDescriptor::GetItemName(currentSolidIn).ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("[ ] Inputs: %s - %s"), *UFGItemDescriptor::GetItemName(currentFluidIn).ToString(), *UFGItemDescriptor::GetItemName(currentSolidIn).ToString());
 
 	// recipe
 	tryUpdateRecipeCache(GetWorld());
 	TSubclassOf<class UFGRecipe> foundRecipe = nullptr;
 
 	for (int i = 0, l = recipeCache.Num(); i < l; i++) {
+		if (!recipeCache.IsValidIndex(i) || recipeCache[i] == NULL) { recipeCache.Empty();  return; }
+
 		TArray<FItemAmount> ingredients = UFGRecipe::GetIngredients(recipeCache[i]);
 
 		if (ingredients.Num() == 2) {
@@ -106,7 +93,7 @@ void AABSmartPacker::FindRecipeFromInputs() {
 		}
 	}
 
-	//UE_LOG(LogTemp, Warning, TEXT("FOUND!: %s "), *UFGRecipe::GetRecipeName(foundRecipe).ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("[ ] Found!: %s "), *UFGRecipe::GetRecipeName(foundRecipe).ToString());
 
 	// set it
 	if (foundRecipe != nullptr && foundRecipe != mCurrentRecipe) {
@@ -123,6 +110,6 @@ void AABSmartPacker::ForceRecipe(TSubclassOf<class UFGRecipe> recipe) {
 
 	SetRecipe(recipe);
 
-	//UE_LOG(LogTemp, Warning, TEXT("APPLIED!: %s "), *UFGRecipe::GetRecipeName(recipe).ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("[ ] Applied!: %s "), *UFGRecipe::GetRecipeName(recipe).ToString());
 }
 
