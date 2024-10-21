@@ -1,8 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "ABFluidExhaust.h"
 #include "Math/UnrealMathUtility.h"
+
+bool AABFluidExhaust::bIsSafteyUnlocked = false;
 
 void AABFluidExhaust::BeginPlay() {
 	Super::BeginPlay();

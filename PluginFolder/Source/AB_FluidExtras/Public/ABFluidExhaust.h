@@ -22,9 +22,13 @@ class AB_FLUIDEXTRAS_API AABFluidExhaust : public AFGBuildableFactory {
 public:
 	// class info //
 
-	// ordered list of which visualizers this should consider, later items will be checked first
+	// ordered list of which visualizers for this class which are safe
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System")
-	TArray< TSubclassOf<AABExhaustVisualizer> > visualizers;
+	TArray< TSubclassOf<AABExhaustVisualizer> > safeVisualizers;
+
+	// ordered list of which visualizers for this class which are unsafe
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System")
+	TArray< TSubclassOf<AABExhaustVisualizer> > unsafeVisualizers;
 
 	// maximum storage override value
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
@@ -34,7 +38,27 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
 	float safteyInspectionFrequency;
 
+protected:
+	// can exhausts be set into unsafe mode
+	static bool bIsSafteyUnlocked;
+
+public:
+	// can exhausts be set into unsafe mode
+	UFUNCTION(BlueprintPure)
+	bool GetIsSafetyUnlocked() { return AABFluidExhaust::bIsSafteyUnlocked; };
+	// can exhausts be set into unsafe mode
+	UFUNCTION(BlueprintCallable)
+	void SetIsSafetyUnlocked(bool unlocked) { AABFluidExhaust::bIsSafteyUnlocked = unlocked; };
+
 	// instance specific //
+
+	// ordered list of which visualizers this object should consider, later items will be checked first
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
+	TArray< TSubclassOf<AABExhaustVisualizer> > visualizers;
+
+	// current visualizer
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, /*Replicated,*/ Category = "Exhaust System|Instance")
+	AABExhaustVisualizer* activeVisualizer;
 
 	// vent 100% of storage per minute or try to hit a specific ammount
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust System|Instance")
@@ -48,9 +72,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
 	float timeToSafteyInspection;
 
-	// current visualizer
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, /*Replicated,*/ Category = "Exhaust System|Instance")
-	AABExhaustVisualizer* activeVisualizer;
+	// has this exhaust been set into unsafe mode
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
+	bool bSafteyReleased;
 
 protected:
 	// are we venting now
