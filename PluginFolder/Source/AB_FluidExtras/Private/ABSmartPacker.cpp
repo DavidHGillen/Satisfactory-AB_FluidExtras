@@ -8,14 +8,14 @@ TArray< TSubclassOf<class UFGRecipe> > AABSmartPacker::recipeCache;
 // Factory interface
 void AABSmartPacker::Factory_Tick(float dt) {
 	if (GetLocalRole() == ENetRole::ROLE_Authority) {
-		UE_LOG(LogTemp, Warning, TEXT("[ ] Its my job"));
+		//UE_LOG(LogTemp, Warning, TEXT("[ ] Its my job"));
 		if (HasPower() && !CanProduce()) {
-			UE_LOG(LogTemp, Warning, TEXT("[ ] Can't Produce"));
+			//UE_LOG(LogTemp, Warning, TEXT("[ ] Can't Produce"));
 			FindRecipeFromInputs();
 		}
-	} else {
+	}/* else {
 		UE_LOG(LogTemp, Warning, TEXT("[ ] Not my job"));
-	}
+	}*/
 
 	Super::Factory_Tick(dt);
 }
@@ -29,14 +29,14 @@ bool AABSmartPacker::IsConfigured() const {
 void AABSmartPacker::InitializeCache() {
 	recipeCache.Empty();
 
-	UE_LOG(LogTemp, Warning, TEXT("[ ] init cache [ %d ] Recipes left"), recipeCache.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("[ ] init cache [ %d ] Recipes left"), recipeCache.Num());
 }
 
 void AABSmartPacker::UpdateCache(AFGRecipeManager* recipeManager, TSubclassOf<AFGBuildableManufacturer> fromBuilding) {
 	// set recipes on cache
 	recipeManager->GetAvailableRecipesForProducer(fromBuilding, recipeCache);
 
-	UE_LOG(LogTemp, Warning, TEXT("[ ] Updating smart packer recipe cache [ %d ] Recipes found from: %s"), recipeCache.Num(), *fromBuilding->GetName());
+	//UE_LOG(LogTemp, Warning, TEXT("[ ] Updating smart packer recipe cache [ %d ] Recipes found from: %s"), recipeCache.Num(), *fromBuilding->GetName());
 }
 
 void AABSmartPacker::FindRecipeFromInputs() {
@@ -58,12 +58,12 @@ void AABSmartPacker::FindRecipeFromInputs() {
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("[ ] Inputs: %s - %s"), *UFGItemDescriptor::GetItemName(currentFluidIn).ToString(), *UFGItemDescriptor::GetItemName(currentSolidIn).ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("[ ] Inputs: %s - %s"), *UFGItemDescriptor::GetItemName(currentFluidIn).ToString(), *UFGItemDescriptor::GetItemName(currentSolidIn).ToString());
 
 	// recipe
 	TSubclassOf<class UFGRecipe> foundRecipe = nullptr;
 
-	UE_LOG(LogTemp, Warning, TEXT("[ ] Browsing: %d "), recipeCache.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("[ ] Browsing: %d "), recipeCache.Num());
 
 	for (int i = 0, l = recipeCache.Num(); i < l; i++) {
 		TArray<FItemAmount> ingredients = UFGRecipe::GetIngredients(recipeCache[i]);
@@ -82,7 +82,7 @@ void AABSmartPacker::FindRecipeFromInputs() {
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("[ ] Found!: %s "), *UFGRecipe::GetRecipeName(foundRecipe).ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("[ ] Found!: %s "), *UFGRecipe::GetRecipeName(foundRecipe).ToString());
 
 	// set it
 	if (foundRecipe != nullptr && foundRecipe != mCurrentRecipe) {
@@ -99,6 +99,6 @@ void AABSmartPacker::ForceRecipe(TSubclassOf<class UFGRecipe> recipe) {
 
 	SetRecipe(recipe);
 
-	UE_LOG(LogTemp, Warning, TEXT("[ ] Applied!: %s "), *UFGRecipe::GetRecipeName(recipe).ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("[ ] Applied!: %s "), *UFGRecipe::GetRecipeName(recipe).ToString());
 }
 
