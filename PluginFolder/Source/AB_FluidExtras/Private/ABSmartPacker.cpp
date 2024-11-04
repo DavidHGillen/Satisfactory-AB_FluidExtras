@@ -7,7 +7,7 @@ TArray< TSubclassOf<class UFGRecipe> > AABSmartPacker::recipeCache;
 
 // Factory interface
 void AABSmartPacker::Factory_Tick(float dt) {
-	if (GetLocalRole() == ENetRole::ROLE_Authority) {
+	if (GetLocalRole() == ENetRole::ROLE_Authority && !bPendingRecipe) {
 		//UE_LOG(LogTemp, Warning, TEXT("[ ] Its my job"));
 		if (HasPower() && !CanProduce()) {
 			//UE_LOG(LogTemp, Warning, TEXT("[ ] Can't Produce"));
@@ -86,6 +86,7 @@ void AABSmartPacker::FindRecipeFromInputs() {
 
 	// set it
 	if (foundRecipe != nullptr && foundRecipe != mCurrentRecipe) {
+		bPendingRecipe = true;
 		NewRecipeFound(foundRecipe);
 	}
 }
@@ -98,6 +99,7 @@ void AABSmartPacker::ForceRecipe(TSubclassOf<class UFGRecipe> recipe) {
 	ClearInputInventoryItems();
 
 	SetRecipe(recipe);
+	bPendingRecipe = false;
 
 	//UE_LOG(LogTemp, Warning, TEXT("[ ] Applied!: %s "), *UFGRecipe::GetRecipeName(recipe).ToString());
 }

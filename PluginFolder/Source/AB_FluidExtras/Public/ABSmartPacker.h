@@ -20,6 +20,7 @@ class AB_FLUIDEXTRAS_API AABSmartPacker : public AFGBuildableManufacturer
 
 private:
 	static TArray< TSubclassOf<class UFGRecipe> > recipeCache;
+	bool bPendingRecipe = false;
 
 public:
 
