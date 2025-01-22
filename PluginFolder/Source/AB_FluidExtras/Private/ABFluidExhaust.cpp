@@ -136,7 +136,7 @@ bool AABFluidExhaust::isValidFluid(TSubclassOf<UFGItemDescriptor> item) {
 
 /**
  * Utility function for checking visualizers against item type.
- * Importantly it reutrns the first result traversing the array backwards.
+ * Importantly it returns the first result traversing the array backwards.
  * Use this behaviour to prioritize more specific/important visualizers
  */
 TSubclassOf<AABExhaustVisualizer> AABFluidExhaust::GetRelevantVisualizer(TArray< TSubclassOf<AABExhaustVisualizer> > visualizers, TSubclassOf<UFGItemDescriptor> item) {
