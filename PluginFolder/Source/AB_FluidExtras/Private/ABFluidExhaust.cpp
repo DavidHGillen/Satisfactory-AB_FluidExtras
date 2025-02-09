@@ -28,6 +28,10 @@ TSubclassOf<UFGItemDescriptor> AABFluidExhaust::GetVentItem_Current() const {
 	return NULL;
 }
 
+TSubclassOf<UFGItemDescriptor> AABFluidExhaust::GetFoundFluid() const {
+	return foundFluidType;
+}
+
 int AABFluidExhaust::GetStoredFluid_Current() const {
 	FInventoryStack stackTemp;
 	if (mInputInventory->GetStackFromIndex(0, stackTemp)) {
@@ -62,7 +66,7 @@ void AABFluidExhaust::Factory_Tick(float dt) {
 }
 
 void AABFluidExhaust::UpdateFluid() {
-	TSubclassOf<UFGItemDescriptor> foundFluidType = inputConnection->GetFluidDescriptor();
+	foundFluidType = inputConnection->GetFluidDescriptor();
 
 	if (foundFluidType == cachedVentItem) { return; }
 

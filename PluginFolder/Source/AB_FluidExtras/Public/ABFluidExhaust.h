@@ -89,9 +89,14 @@ protected:
 	UPROPERTY(SaveGame)
 	UFGInventoryComponent* mInputInventory;
 
+	TSubclassOf<UFGItemDescriptor> foundFluidType;
+
 public:
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
 	virtual TSubclassOf<UFGItemDescriptor> GetVentItem_Current() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
+	virtual TSubclassOf<UFGItemDescriptor> GetFoundFluid() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
 	virtual int GetVentRate_Display() const;
