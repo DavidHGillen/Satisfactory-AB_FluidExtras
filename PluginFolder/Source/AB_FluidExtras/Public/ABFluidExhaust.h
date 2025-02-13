@@ -38,17 +38,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
 	float safteyInspectionFrequency;
 
-protected:
-	// can exhausts be set into unsafe mode
-	static bool bIsSafteyUnlocked;
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
+	void ForceSafteySystemUnlocked(bool isUnlocked = false);
 
-public:
-	// can exhausts be set into unsafe mode
-	UFUNCTION(BlueprintPure)
-	bool GetIsSafetyUnlocked() { return AABFluidExhaust::bIsSafteyUnlocked; };
-	// can exhausts be set into unsafe mode
-	UFUNCTION(BlueprintCallable)
-	void SetIsSafetyUnlocked(bool unlocked) { AABFluidExhaust::bIsSafteyUnlocked = unlocked; };
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
+	bool CheckSafteySystemUnlocked();
 
 	// instance specific //
 
