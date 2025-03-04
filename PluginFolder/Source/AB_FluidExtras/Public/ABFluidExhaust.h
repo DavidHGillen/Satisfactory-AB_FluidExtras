@@ -22,11 +22,11 @@ class AB_FLUIDEXTRAS_API AABFluidExhaust : public AFGBuildableFactory {
 public:
 	// class info //
 
-	// ordered list of which visualizers for this class which are safe
+	// ordered list of which visualizers for this class which are for safe mode only
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System")
 	TArray< TSubclassOf<AABExhaustVisualizer> > safeVisualizers;
 
-	// ordered list of which visualizers for this class which are unsafe
+	// ordered list of which visualizers for this class which are for unsafe mode
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System")
 	TArray< TSubclassOf<AABExhaustVisualizer> > unsafeVisualizers;
 
