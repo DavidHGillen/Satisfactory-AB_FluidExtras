@@ -71,7 +71,9 @@ void AABFluidExhaust::UpdateFluid() {
 	// do we like our new fluid
 	TSubclassOf<AABExhaustVisualizer> visClass = GetRelevantVisualizer(visualizers, foundFluidType);
 	cachedVentItem = foundFluidType;
-	ExhaustFluidUpdate(foundFluidType, visClass);
+	AsyncTask(ENamedThreads::GameThread, [this, visClass](){
+		ExhaustFluidUpdate(foundFluidType, visClass);
+	});
 
 	// if we've got no relevant visualizer don't clean up
 	if (visClass == NULL) { return; }

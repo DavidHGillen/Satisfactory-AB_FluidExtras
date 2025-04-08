@@ -51,7 +51,7 @@ public:
 	TArray< TSubclassOf<AABExhaustVisualizer> > visualizers;
 
 	// current visualizer
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, /*Replicated,*/ Category = "Exhaust System|Instance")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust System|Instance")
 	AABExhaustVisualizer* activeVisualizer;
 
 	// vent 100% of storage per minute or try to hit a specific ammount
@@ -63,11 +63,11 @@ public:
 	int targetRateToVent;
 
 	// how long to a check
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust System|Instance")
 	float timeToSafteyInspection;
 
 	// has this exhaust been set into unsafe mode
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust System|Instance")
 	bool bSafteyReleased;
 
 protected:

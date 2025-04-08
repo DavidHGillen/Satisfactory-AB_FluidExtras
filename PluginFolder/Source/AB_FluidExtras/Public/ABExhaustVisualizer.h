@@ -59,6 +59,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System", meta=( RowType="ABExhaustPlayerFX" ))
 	UDataTable* itemFXData;
 
+	// functions
+
 	// does this item belong to this visualizer
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
 	bool RelevantItem(TSubclassOf<UFGItemDescriptor> item);
