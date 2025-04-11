@@ -25,6 +25,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System")
 	TArray< TSubclassOf<AABExhaustVisualizer> > visualizers;
 
+	// is this a small enough wall based attachment instead of a free standing building
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System")
+	bool bWallAttachment = false;
+
 protected:
 	// if we snapped to something, track it to connect when built
 	UFGPipeConnectionComponentBase* mSnappedPipeConnection = NULL;

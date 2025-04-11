@@ -64,7 +64,7 @@ bool AABExhaustHologram::TrySnapToActor(const FHitResult& hitResult) {
 
 	// pipeline end snapping
 	AFGBuildablePipeline* hitPipeline = Cast<AFGBuildablePipeline>(hitActor);
-	if (hitPipeline != NULL) {
+	if (hitPipeline != NULL && bWallAttachment) {
 		FTransform snapTransform;
 		USplineComponent* splineRef = hitPipeline->GetSplineComponent();
 		float length = splineRef->GetSplineLength();
@@ -92,6 +92,11 @@ bool AABExhaustHologram::TrySnapToActor(const FHitResult& hitResult) {
 
 void AABExhaustHologram::SetHologramLocationAndRotation(const FHitResult& hitResult) {
 	AActor* hitActor = hitResult.GetActor();
+
+	if (!bWallAttachment) {
+		Super::SetHologramLocationAndRotation(hitResult);
+		return;
+	}
 
 	FVector localHitNormal = hitActor->GetTransform().Inverse().TransformVector(hitResult.ImpactNormal);
 	FRotator outRotation = FRotator::ZeroRotator;
