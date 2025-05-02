@@ -3,27 +3,36 @@
 #include "ABFluidExhaust.h"
 #include "Math/UnrealMathUtility.h"
 
+/*AABFluidExhaust::AABFluidExhaust() {
+	Super();
+
+	mInputInventory = NewObject<UFGInventoryComponent>(this);
+	FinishAndRegisterComponent(mInputInventory);
+}*/
+
 void AABFluidExhaust::BeginPlay() {
 	Super::BeginPlay();
 
 	bActiveVenting = false;
-
 	inputConnection = GetComponentByClass<UFGPipeConnectionFactory>();
 
-	if (GetLocalRole() == ENetRole::ROLE_Authority) {
-		if (mInputInventory == NULL) {
-			mInputInventory = UFGInventoryLibrary::CreateInventoryComponent(this, "InputInventory");
-			mInputInventory->AddArbitrarySlotSize(0, storageOverride);
-		}
-	}
+	UpdateVisualizerList();
 }
 
 TSubclassOf<UFGItemDescriptor> AABFluidExhaust::GetVentItem_Current() const {
-	FInventoryStack stackTemp;
-	if (mInputInventory->GetStackFromIndex(0, stackTemp)) {
-		return stackTemp.Item.GetItemClass();
+	TSubclassOf<UFGItemDescriptor> item = NULL;
+
+	if (activeVisualizer) {
+		if (cachedVentItem == NULL) {
+			FInventoryStack stackTemp;
+			mInputInventory->GetStackFromIndex(0, stackTemp);
+			item = stackTemp.Item.GetItemClass();
+		} else {
+			item = cachedVentItem;
+		}
 	}
-	return NULL;
+
+	return item;
 }
 
 TSubclassOf<UFGItemDescriptor> AABFluidExhaust::GetFoundFluid() const {
@@ -38,9 +47,38 @@ int AABFluidExhaust::GetStoredFluid_Current() const {
 	return 0;
 }
 
+bool AABFluidExhaust::ForceSafteyState(bool isSafe) {
+	if (bSafteyEngaged == isSafe) { return false; }
+
+	bSafteyEngaged = isSafe;
+	UpdateVisualizerList();
+
+	return true;
+}
+
+bool AABFluidExhaust::CheckSafteyState() {
+	return bSafteyEngaged;
+}
+
+void AABFluidExhaust::UpdateVisualizerList() {
+	visualizers.Empty();
+
+	if (!bSafteyEngaged) {
+		visualizers.Append(unsafeVisualizers);
+	}
+
+	visualizers.Append(safeVisualizers);
+
+	cachedVentItem = NULL; // cause it to rethink the appropriate vizualizer
+}
+
 int AABFluidExhaust::GetVentRate_Display() const {
 	//if (GetLocalRole() == ENetRole::ROLE_Authority) {
-	return bAutoRateVenting ? GetStoredFluid_Current() : targetRateToVent; // TODO: correct how this is done
+	int rate = 0;
+	if (bActiveVenting) {
+		rate = bAutoRateVenting ? GetStoredFluid_Current() : targetRateToVent; // TODO: correct how this is done
+	}
+	return rate;
 }
 
 void AABFluidExhaust::Factory_Tick(float dt) {
@@ -49,8 +87,11 @@ void AABFluidExhaust::Factory_Tick(float dt) {
 		UpdateFluid();
 	}
 
-	// can we do anything
-	if (!activeVisualizer) { return; }
+	// can we do anything we may of ingested fluids while unsafe and been reset to safe so validity check needed to respond
+	if (!activeVisualizer || !activeVisualizer->checkSuccess || !isValidFluid(cachedVentItem)) {
+		bActiveVenting = false;
+		return;
+	}
 
 	// investigate to see if we should pull fluid
 	if (inputConnection->IsConnected()) {
@@ -79,10 +120,8 @@ void AABFluidExhaust::UpdateFluid() {
 	if (visClass == NULL) { return; }
 
 	// clean out
-	int currentStore = GetStoredFluid_Current();
-	if (currentStore > 0) {
+	if (GetStoredFluid_Current() > 0) {
 		mInputInventory->RemoveAllFromIndex(0);
-		currentStore = 0;
 	}
 }
 

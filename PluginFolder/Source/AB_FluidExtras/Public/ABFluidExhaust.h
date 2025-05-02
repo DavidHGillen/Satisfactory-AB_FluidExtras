@@ -19,6 +19,8 @@ UCLASS()
 class AB_FLUIDEXTRAS_API AABFluidExhaust : public AFGBuildableFactory {
 	GENERATED_BODY()
 
+	//AABFluidExhaust();
+
 public:
 	// class info //
 
@@ -38,9 +40,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
 	float safteyInspectionFrequency;
 
+	// set the bp specific saftey lock
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
 	void ForceSafteySystemUnlocked(bool isUnlocked = false);
 
+	// check the bp specific saftey lock
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
 	bool CheckSafteySystemUnlocked();
 
@@ -66,11 +70,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust System|Instance")
 	float timeToSafteyInspection;
 
-	// has this exhaust been set into unsafe mode
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust System|Instance")
-	bool bSafteyReleased;
+	// delegate //
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUpdateToFluidDelegate);
+
+	UPROPERTY(BlueprintAssignable, Category = "Exhaust System")
+	FUpdateToFluidDelegate OnUpdateToFluid;
+
+	UFUNCTION(BlueprintCallable, Category = "Exhaust System")
+	virtual void UpdateToFluidBroadcast() { OnUpdateToFluid.Broadcast(); };
 
 protected:
+
+	// has this exhaust been set into unsafe mode
+	UPROPERTY(BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust System|Instance")
+	bool bSafteyEngaged = true;
+
 	// are we venting now
 	bool bActiveVenting = false;
 
@@ -86,6 +100,8 @@ protected:
 	TSubclassOf<UFGItemDescriptor> foundFluidType;
 
 public:
+	void BeginPlay();
+
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
 	virtual TSubclassOf<UFGItemDescriptor> GetVentItem_Current() const;
 
@@ -101,12 +117,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
 	UFGPipeConnectionFactory* GetInputConnection() const { return inputConnection; };
 
-public:
-	void BeginPlay();
-
-	// handoff to the Blueprint to do actor swapping and initalization etc
-	UFUNCTION(BlueprintImplementableEvent)
+	// must handoff to the Blueprint to do actor swapping and initalization etc (call in gameplay thread)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Exhaust System|Instance")
 	void ExhaustFluidUpdate(TSubclassOf<UFGItemDescriptor> newFluid, TSubclassOf<AABExhaustVisualizer> newVisualizer);
+
+	// set the instance specific saftey state, returns true if changed
+	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance", meta = (ReturnDisplayName = "WasChanged"))
+	bool ForceSafteyState(bool isSafe);
+
+	// check the instance specific saftey state
+	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
+	bool CheckSafteyState();
+
+	// update the instance specific visualizers to pick from
+	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
+	void UpdateVisualizerList();
 
 protected:
 	virtual void Factory_Tick(float dt) override;

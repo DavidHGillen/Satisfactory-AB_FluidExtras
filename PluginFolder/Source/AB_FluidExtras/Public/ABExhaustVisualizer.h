@@ -41,21 +41,25 @@ class AABExhaustVisualizer: public AActor {
 public:
 	// a verbal explanation of the check result
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
+	FText FriendlyName;
+
+	// a verbal explanation of the check result
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
 	FString checkSuccessString;
 
 	// whether the check passed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
-	bool checkSuccess;
+	bool checkSuccess = false;
 
 	// what to show when switching hologram modes to this
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
 	TSubclassOf<UFGBuildGunModeDescriptor> modeDescriptor;
 
-	// the extra data table of info
+	// items to filter out of responses like impacts, expanded from base classes
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System", meta=( AllowAbstract = true ))
 	TArray<TSubclassOf<AActor>> filterClasses;
 
-	// the extra data table of info
+	// bonus per class info for things like dmg ammounts
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System", meta=( RowType="ABExhaustPlayerFX" ))
 	UDataTable* itemFXData;
 
@@ -76,4 +80,8 @@ public:
 	// add any lines or other stuff the hologram needs for visualization
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
 	void ConfigureHologram(AABExhaustHologram* target);
+
+	// what icons we should display to help people understand what we vent
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
+	TArray<UTexture2D*> GetHelperIcons();
 };
