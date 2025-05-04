@@ -41,7 +41,7 @@ TSubclassOf<UFGItemDescriptor> AABFluidExhaust::GetFoundFluid() const {
 
 int AABFluidExhaust::GetStoredFluid_Current() const {
 	FInventoryStack stackTemp;
-	if (mInputInventory->GetStackFromIndex(0, stackTemp)) {
+	if (cachedVentItem != NULL && mInputInventory->GetStackFromIndex(0, stackTemp)) {
 		return stackTemp.NumItems;
 	}
 	return 0;

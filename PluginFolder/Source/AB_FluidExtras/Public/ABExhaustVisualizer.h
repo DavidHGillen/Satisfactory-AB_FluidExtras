@@ -39,9 +39,6 @@ class AABExhaustVisualizer: public AActor {
 	GENERATED_BODY()
 
 public:
-	// a verbal explanation of the check result
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
-	FText FriendlyName;
 
 	// a verbal explanation of the check result
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
@@ -50,6 +47,10 @@ public:
 	// whether the check passed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
 	bool checkSuccess = false;
+
+	// a verbal explanation of the check result
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
+	FText FriendlyName;
 
 	// what to show when switching hologram modes to this
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
