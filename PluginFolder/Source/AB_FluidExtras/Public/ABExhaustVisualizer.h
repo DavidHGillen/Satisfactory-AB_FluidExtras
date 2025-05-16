@@ -85,4 +85,19 @@ public:
 	// what icons we should display to help people understand what we vent
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
 	TArray<UTexture2D*> GetHelperIcons();
+
+	// utility
+	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
+	void AppendTextToSuccessStatus(FText newText) {
+		checkSuccessString.Append(" ");
+		checkSuccessString.Append(newText.ToString());
+		checkSuccessString.Append(" ");
+	};
+
+	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
+	void AppendStringToSuccessStatus(FString newText) {
+		checkSuccessString.Append(" ");
+		checkSuccessString.Append(newText);
+		checkSuccessString.Append(" ");
+	};
 };
