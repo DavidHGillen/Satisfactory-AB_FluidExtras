@@ -1,8 +1,8 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.0.9",
-	"SemVersion": "1.0.9",
+	"VersionName": "1.0.11",
+	"SemVersion": "1.0.11",
 	"FriendlyName": "Fluid Extras",
 	"Description": "Several new pipe junctions, alternate Mini Water Extractor, and new A.I. Packing machine.",
 	"Category": "Modding",
@@ -15,7 +15,7 @@
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
-	"GameVersion": ">=382498",
+	"GameVersion": ">=416835",
 	"Modules": [
 		{
 			"Name": "AB_FluidExtras",
@@ -27,7 +27,7 @@
 		{
 			"Name": "SML",
 			"Enabled": true,
-			"SemVersion": "^3.8.0"
+			"SemVersion": "^3.11.1"
 		}
 	]
 }

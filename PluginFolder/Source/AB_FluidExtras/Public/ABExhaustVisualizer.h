@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/DataTable.h"
 
 #include "ABExhaustVisualizer.generated.h"
 
@@ -59,10 +58,6 @@ public:
 	// items to filter out of responses like impacts, expanded from base classes
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System", meta=( AllowAbstract = true ))
 	TArray<TSubclassOf<AActor>> filterClasses;
-
-	// bonus per class info for things like dmg ammounts
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System", meta=( RowType="ABExhaustPlayerFX" ))
-	UDataTable* itemFXData;
 
 	// functions
 
