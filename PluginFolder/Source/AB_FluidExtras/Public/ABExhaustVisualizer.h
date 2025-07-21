@@ -30,8 +30,14 @@ public:
 };
 
 /**
- * Abstract class for BP implementation of checks
- * BP implemntation gives better control to this and other mods
+ * Abstract class for BP implementation of a visualizer in the exhaust system.
+ * 
+ * While the exhaust object handles all the mechanics of interacting with the items visualizers
+ * handle both the look of what's being vented and the checks to see if it can be vented.
+ * They are also used by the hologram classes to help users place their exhausts which is why
+ * they contain the checks, which are largely constrained by how flexible a visualizer is.
+ * It's important to remember that these need to heavily integrate with BP assets.
+ * BP implemntation gives better control to this and other mods, hence no C++ implemntation.
  */
 UCLASS(BlueprintType, Abstract, Category = "Exhaust System")
 class AABExhaustVisualizer: public AActor {
@@ -39,13 +45,13 @@ class AABExhaustVisualizer: public AActor {
 
 public:
 
-	// a verbal explanation of the check result
+	// a verbal explanation of the check results, used by UI to warn players
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
-	FString checkSuccessString;
+	FString problemString;
 
-	// whether the check passed
+	// whether the location check passed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Exhaust System|Instance")
-	bool checkSuccess = false;
+	bool validLocation = false;
 
 	// a verbal explanation of the check result
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
@@ -63,15 +69,15 @@ public:
 
 	// does this item belong to this visualizer
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
-	bool RelevantItem(TSubclassOf<UFGItemDescriptor> item);
+	bool CheckRelevantItem(TSubclassOf<UFGItemDescriptor> item);
 
 	// investigate the given position to see if it is valid
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
-	bool PerformSafteyCheck(FTransform testStart);
+	bool CheckLocation(FTransform testStart);
 
 	// provide an update to the visuals if needed
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
-	void UpdateVisuals(TSubclassOf<UFGItemDescriptor> item, float currentRate);
+	void UpdateVisuals(TSubclassOf<UFGItemDescriptor> item, int currentRate);
 
 	// add any lines or other stuff the hologram needs for visualization
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
@@ -83,16 +89,16 @@ public:
 
 	// utility
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
-	void AppendTextToSuccessStatus(FText newText) {
-		checkSuccessString.Append(" ");
-		checkSuccessString.Append(newText.ToString());
-		checkSuccessString.Append(" ");
+	void AppendTextToProblems(FText newProblem) {
+		problemString.Append(" ");
+		problemString.Append(newProblem.ToString());
+		problemString.Append(" ");
 	};
 
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
-	void AppendStringToSuccessStatus(FString newText) {
-		checkSuccessString.Append(" ");
-		checkSuccessString.Append(newText);
-		checkSuccessString.Append(" ");
+	void AppendStringToProblems(FString newProblem) {
+		problemString.Append(" ");
+		problemString.Append(newProblem);
+		problemString.Append(" ");
 	};
 };

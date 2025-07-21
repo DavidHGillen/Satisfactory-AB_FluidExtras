@@ -3,47 +3,47 @@
 #include "ABFluidExhaust.h"
 #include "Math/UnrealMathUtility.h"
 
-/*AABFluidExhaust::AABFluidExhaust() {
-	Super();
-
+void AABFluidExhaust::BeginPlay() {
 	mInputInventory = NewObject<UFGInventoryComponent>(this);
 	FinishAndRegisterComponent(mInputInventory);
-}*/
+	mInputInventory->AddArbitrarySlotSize(0, storageOverride);
 
-void AABFluidExhaust::BeginPlay() {
 	Super::BeginPlay();
 
 	bActiveVenting = false;
+	bActivePurge = false;
+	cachedFoundFluid = NULL;
 	inputConnection = GetComponentByClass<UFGPipeConnectionFactory>();
 
+	nextInspection = FDateTime::Now() + FTimespan::FromSeconds(
+		locationInspectionFrequency * FMath::FRandRange(0.85f, 1.15f)
+	);
+
 	UpdateVisualizerList();
+
+	if (maxRatePerMin <= 0) { UE_LOG(LogTemp, Error, TEXT("!!!! ASSERTATION FAILED !!!!!, maxRatePerMin is too low at %d"), maxRatePerMin); }
+	if (storageOverride <= 10000) { UE_LOG(LogTemp, Error, TEXT("!!!! ASSERTATION FAILED !!!!!, storageOverride is too low at %d"), storageOverride); }
 }
 
 TSubclassOf<UFGItemDescriptor> AABFluidExhaust::GetVentItem_Current() const {
-	TSubclassOf<UFGItemDescriptor> item = NULL;
+	if (mInputInventory == NULL || mInputInventory->IsEmpty()) { return NULL; }
 
-	if (activeVisualizer) {
-		if (cachedVentItem == NULL) {
-			FInventoryStack stackTemp;
-			mInputInventory->GetStackFromIndex(0, stackTemp);
-			item = stackTemp.Item.GetItemClass();
-		} else {
-			item = cachedVentItem;
-		}
+	FInventoryStack stackTemp;
+	if (mInputInventory->GetStackFromIndex(0, stackTemp)) {
+		return stackTemp.Item.GetItemClass();
 	}
 
-	return item;
-}
-
-TSubclassOf<UFGItemDescriptor> AABFluidExhaust::GetFoundFluid() const {
-	return foundFluidType;
+	return NULL;
 }
 
 int AABFluidExhaust::GetStoredFluid_Current() const {
+	if (mInputInventory == NULL || mInputInventory->IsEmpty()) { return 0; }
+
 	FInventoryStack stackTemp;
-	if (cachedVentItem != NULL && mInputInventory->GetStackFromIndex(0, stackTemp)) {
+	if (mInputInventory->GetStackFromIndex(0, stackTemp)) {
 		return stackTemp.NumItems;
 	}
+
 	return 0;
 }
 
@@ -63,72 +63,86 @@ bool AABFluidExhaust::CheckSafteyState() {
 void AABFluidExhaust::UpdateVisualizerList() {
 	visualizers.Empty();
 
+	visualizers.Append(safeVisualizers);
+
 	if (!bSafteyEngaged) {
 		visualizers.Append(unsafeVisualizers);
 	}
 
-	visualizers.Append(safeVisualizers);
-
-	cachedVentItem = NULL; // cause it to rethink the appropriate vizualizer
-}
-
-int AABFluidExhaust::GetVentRate_Display() const {
-	//if (GetLocalRole() == ENetRole::ROLE_Authority) {
-	int rate = 0;
-	if (bActiveVenting) {
-		rate = bAutoRateVenting ? GetStoredFluid_Current() : targetRateToVent; // TODO: correct how this is done
+	UE_LOG(LogTemp, Warning, TEXT("~~~~ Visualizers: "));
+	for (int i = 0; i < visualizers.Num(); i++) {
+		UE_LOG(LogTemp, Warning, TEXT("~ %s"), *visualizers[i].GetDefaultObject()->FriendlyName.ToString());
 	}
-	return rate;
+
+	// simplest way to cause a re-examination of whether the fluid can be vented
+	cachedFoundFluid = NULL;
 }
 
 void AABFluidExhaust::Factory_Tick(float dt) {
-	// what fluid are we working with
-	if (!bActiveVenting) {
-		UpdateFluid();
+	TSubclassOf<UFGItemDescriptor> foundFluidType = inputConnection->GetFluidDescriptor();
+	TSubclassOf<UFGItemDescriptor> storedItem = GetVentItem_Current();
+	int storedUnits = GetStoredFluid_Current();
+	bActiveVenting = false;
+
+	UE_LOG(LogTemp, Warning, TEXT("~~~~ FTick: %s"), *nextInspection.ToString());
+
+	// if a new fluid is waiting we need to switch our visualizer, but we should only do that when empty
+	if (cachedFoundFluid != foundFluidType) {
+		cachedFoundFluid = foundFluidType;
+
+		UE_LOG(LogTemp, Warning, TEXT("~~~~ FluidSurprise = "));
+
+		if (storedUnits == 0) {
+			bActivePurge = false;
+
+			UE_LOG(LogTemp, Warning, TEXT("~~~~ EmptySoSwitch:"));
+
+			TSubclassOf<AABExhaustVisualizer> visClass = GetRelevantVisualizer(visualizers, cachedFoundFluid);
+			AsyncTask(ENamedThreads::GameThread, [this, visClass](){
+				UpdateToFluidBroadcast(visClass);
+			});
+			
+			// give the system a tick to avoid race conditions given the threaded call above
+			return;
+		} else {
+			UE_LOG(LogTemp, Warning, TEXT("~~~~ PURGE! "));
+			bActivePurge = true;
+		}
 	}
 
-	// can we do anything we may of ingested fluids while unsafe and been reset to safe so validity check needed to respond
-	if (!activeVisualizer || !activeVisualizer->checkSuccess || !isValidFluid(cachedVentItem)) {
-		bActiveVenting = false;
-		return;
-	}
+	// having a visualizer tells us the item is okay, but we still need to ask if it can run
+	if (activeVisualizer != NULL && activeVisualizer->validLocation) {
+		UE_LOG(LogTemp, Warning, TEXT("~~~~ ACTION = "));
 
-	// investigate to see if we should pull fluid
-	if (inputConnection->IsConnected()) {
-		PullFluid(dt);
-	}
+		if (!bActivePurge && inputConnection->IsConnected()) {
+			PullFluid(dt, storedUnits);
+		}
 
-	// handle venting of fluid we possess if we're allowed
-	if (activeVisualizer->checkSuccess) {
+		bActiveVenting = true;
 		VentFluid(dt);
 	}
-}
 
-void AABFluidExhaust::UpdateFluid() {
-	foundFluidType = inputConnection->GetFluidDescriptor();
-
-	if (foundFluidType == cachedVentItem) { return; }
-
-	// do we like our new fluid
-	TSubclassOf<AABExhaustVisualizer> visClass = GetRelevantVisualizer(visualizers, foundFluidType);
-	cachedVentItem = foundFluidType;
-	AsyncTask(ENamedThreads::GameThread, [this, visClass](){
-		ExhaustFluidUpdate(foundFluidType, visClass);
-	});
-
-	// if we've got no relevant visualizer don't clean up
-	if (visClass == NULL) { return; }
-
-	// clean out
-	if (GetStoredFluid_Current() > 0) {
-		mInputInventory->RemoveAllFromIndex(0);
+	// check time for visualizer location
+	if (FDateTime::Now() > nextInspection) {
+		LocationCheckBroadcast();
+		nextInspection = FDateTime::Now() + FTimespan::FromSeconds(
+			locationInspectionFrequency * FMath::FRandRange(0.85f, 1.15f)
+		);
 	}
+
+	// bend the display towards the actual amount
+	int delta = actualVentRate - displayVentRate;
+	if (delta > -100 && delta < 100) {
+		displayVentRate = actualVentRate;
+	} else {
+		displayVentRate += (delta / 2.0) + 0.5f;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("~ display %d"), displayVentRate);
 }
 
-void AABFluidExhaust::PullFluid(float dt) {
-	int currentStore = GetStoredFluid_Current();
+void AABFluidExhaust::PullFluid(float dt, int currentStore) {
 
-	//UE_LOG(LogTemp, Warning, TEXT("~~~ Pull"));
+	UE_LOG(LogTemp, Warning, TEXT("~~~~ PullFluid = "));
 
 	// measure pull
 	int pullCount = FMath::CeilToInt(10000 * dt); // 600/min adjusted for DeltaT
@@ -139,8 +153,9 @@ void AABFluidExhaust::PullFluid(float dt) {
 
 	// perform pull
 	if (pullCount > 0) {
+		UE_LOG(LogTemp, Warning, TEXT("~ %d"), pullCount);
 		FInventoryStack tempStack;
-		inputConnection->Factory_PullPipeInput(dt, tempStack, cachedVentItem, pullCount);
+		inputConnection->Factory_PullPipeInput(dt, tempStack, cachedFoundFluid, pullCount);
 		if (tempStack.NumItems > 0) {
 			mInputInventory->AddStackToIndex(0, tempStack);
 		}
@@ -148,44 +163,67 @@ void AABFluidExhaust::PullFluid(float dt) {
 }
 
 void AABFluidExhaust::VentFluid(float dt) {
-	if (mInputInventory->IsIndexEmpty(0)) {
-		bActiveVenting = false;
-		//UE_LOG(LogTemp, Warning, TEXT("~~~ EMPTY"));
-		return;
-	}
+
+	UE_LOG(LogTemp, Warning, TEXT("~~~~ VentFluid = "));
 
 	int currentStore = GetStoredFluid_Current();
-	int ventCount = bAutoRateVenting ? currentStore : targetRateToVent;
-	ventCount = FMath::CeilToInt((ventCount / 60.0f) * dt); // correct for DeltaT
+	int maxThisTick = FMath::CeilToInt((float(maxRatePerMin) / 60.0f) * dt); // correct for DeltaT
+	int ventCount;
+
+	// determine how much we're venting
+	if (bActivePurge) {
+		ventCount = maxThisTick;
+	} else {
+		// TODO: wanted to do some kind of anti jank pulsing logic here using minimums but I need to think harder
+		//float itemsPerSec = (minRatePerMin / 60) * minRuntime;
+		int minStoreToVent = 0;// FMath::CeilToInt(itemsPerSec * dt);
+
+		if (currentStore <= minStoreToVent) {
+			bActiveVenting = false;
+			return;
+		}
+
+		ventCount = bAutoRateVenting ? currentStore : targetVentRate;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("~ units %d"), ventCount);
+
+	// apply the venting
+	ventCount = FMath::CeilToInt((float(ventCount) / 60.0f) * dt); // correct for DeltaT
+
+	UE_LOG(LogTemp, Warning, TEXT("~ delta %d"), ventCount);
 	if (ventCount <= 0) {
 		ventCount = 1; //TODO: consider partials accumulation
 	}
 	if (ventCount > currentStore) {
 		ventCount = currentStore;
 	}
+	if (ventCount > maxThisTick) {
+		ventCount = maxThisTick;
+	}
 
 	if (ventCount > 0) {
 		bActiveVenting = true;
 		mInputInventory->RemoveFromIndex(0, ventCount);
 	}
-	//UE_LOG(LogTemp, Warning, TEXT("~~~ ~~~ VentCount: %d"), ventCount);
-}
 
-bool AABFluidExhaust::isValidFluid(TSubclassOf<UFGItemDescriptor> item) {
-	return GetRelevantVisualizer(visualizers, item) != NULL;
+	UE_LOG(LogTemp, Warning, TEXT("~ final %d"), ventCount);
+	actualVentRate = FMath::CeilToInt((float(ventCount) / dt) * 60.0f);
+	UE_LOG(LogTemp, Warning, TEXT("~ actual %d"), actualVentRate);
 }
 
 // static //
 
 /**
- * Utility function for checking visualizers against item type.
+ * Utility function for checking visualizers against item class.
  * Importantly it returns the first result traversing the array backwards.
- * Use this behaviour to prioritize more specific/important visualizers
+ * Use this behaviour to prioritize more specific/important visualizers.
+ * Unsafe visualizers superceed safe visualizers.
  */
 TSubclassOf<AABExhaustVisualizer> AABFluidExhaust::GetRelevantVisualizer(TArray< TSubclassOf<AABExhaustVisualizer> > visualizers, TSubclassOf<UFGItemDescriptor> item) {
 	for (int i = visualizers.Num() - 1; i >= 0; i--) {
 		AABExhaustVisualizer* vis = Cast< AABExhaustVisualizer>(visualizers[i]->GetDefaultObject());
-		if(vis != NULL && vis->RelevantItem(item)) { return visualizers[i]; }
+		if(vis != NULL && vis->CheckRelevantItem(item)) { return visualizers[i]; }
 	}
 	return NULL;
 }

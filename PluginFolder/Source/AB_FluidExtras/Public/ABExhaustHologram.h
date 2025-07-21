@@ -10,9 +10,11 @@
 #include "ABExhaustHologram.generated.h"
 
 /**
- * Perform the necessary saftey checks and pipeline attachment of the exhaust building
- * May have a collection or singular saftey check to visualize, all checks will be run at construction
- * Has a build mode per saftey check which are tracked per index, -1 indicates all checks
+ * Handle showing possible saftey checks via build mode, and placement rules for complex situations.
+ * 
+ * Has a wall snapping mode designed to be like pipeline wall holes and allow easy venting outside.
+ * Cycling the build mode should cycle the visualizers available for the user.
+ * Remember the hologram has to handle the pipe connection if snapping to existing pipes.
  */
 UCLASS(Category = "Exhaust System")
 class AB_FLUIDEXTRAS_API AABExhaustHologram : public AFGBuildableHologram {

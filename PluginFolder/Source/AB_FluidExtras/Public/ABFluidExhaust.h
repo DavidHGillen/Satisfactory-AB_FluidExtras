@@ -13,13 +13,15 @@
 #include "ABFluidExhaust.generated.h"
 
 /**
+ * Perform the necessary pipeline attachment of the exhaust building and interaction with inventories.
  * 
+ * Explictly has a safe and unsafe mode that allow venting of different items.
+ * Visualizers should be made to match the BP implemntation of different versions of this class.
+ * Several pieces of code are handed off to the BP expecting unique issues with each veersion.
  */
 UCLASS()
 class AB_FLUIDEXTRAS_API AABFluidExhaust : public AFGBuildableFactory {
 	GENERATED_BODY()
-
-	//AABFluidExhaust();
 
 public:
 	// class info //
@@ -32,13 +34,29 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Exhaust System")
 	TArray< TSubclassOf<AABExhaustVisualizer> > unsafeVisualizers;
 
+	// in local space, what is the offset visualizers are expected to spawn at
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
+	FVector visualizerOffset;
+
 	// maximum storage override value
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
 	int storageOverride;
 
-	// how often to recheck
+	// maximum rate value. Units/min
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
-	float safteyInspectionFrequency;
+	int maxRatePerMin;
+
+	// minimum rate value. Units/min
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
+	int minRatePerMin;
+
+	// minimum vent runtime in seconds
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
+	float minRuntime;
+
+	// how often to recheck aproximately, randomized to adjust demand spikes
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Exhaust System")
+	float locationInspectionFrequency;
 
 	// set the bp specific saftey lock
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Exhaust System")
@@ -62,22 +80,37 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust System|Instance")
 	bool bAutoRateVenting;
 
-	// what the specific drain rate is if we're not calculating it automatically
+	// what the desired drain rate is in the UI if we're not calculating it automatically. Units/min
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust System|Instance")
-	int targetRateToVent;
-
-	// how long to a check
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust System|Instance")
-	float timeToSafteyInspection;
+	int targetVentRate;
 
 	// delegate //
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FUpdateToFluidDelegate);
+	// new fluid types
+	UDELEGATE(BlueprintAuthorityOnly)
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FUpdateToFluidDelegate,
+		TSubclassOf<UFGItemDescriptor>, fluidClass,
+		TSubclassOf<AABExhaustVisualizer>, visClass
+	);
 
 	UPROPERTY(BlueprintAssignable, Category = "Exhaust System")
 	FUpdateToFluidDelegate OnUpdateToFluid;
 
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System")
-	virtual void UpdateToFluidBroadcast() { OnUpdateToFluid.Broadcast(); };
+	virtual void UpdateToFluidBroadcast(TSubclassOf<AABExhaustVisualizer> visClass) {
+		OnUpdateToFluid.Broadcast(cachedFoundFluid, visClass);
+	};
+
+	// location check time
+	UDELEGATE(BlueprintAuthorityOnly)
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLocationCheckDelegate);
+
+	UPROPERTY(BlueprintAssignable, Category = "Exhaust System")
+	FLocationCheckDelegate OnLocationCheck;
+
+	UFUNCTION(BlueprintCallable, Category = "Exhaust System")
+	virtual void LocationCheckBroadcast() {
+		OnLocationCheck.Broadcast();
+	};
 
 protected:
 
@@ -85,11 +118,19 @@ protected:
 	UPROPERTY(BlueprintReadWrite, SaveGame, /*Replicated,*/ Category = "Exhaust System|Instance")
 	bool bSafteyEngaged = true;
 
+	// practical vent rate, may be lower than target even when targeting due to insufficent fluid. Units/min
+	int actualVentRate;
+
+	// visually shown vent rate, lags a little behind actual rate to reduce jank and snapping. Units/min
+	int displayVentRate;
+
 	// are we venting now
 	bool bActiveVenting = false;
 
-	// may not be valid at some moments so don't use it in the descriptor getter when we can't tell when it will be running
-	TSubclassOf<UFGItemDescriptor> cachedVentItem;
+	// do we have stuff stored and a different fluid in pipe to storage
+	bool bActivePurge = false;
+
+	FDateTime nextInspection;
 
 	UPROPERTY(SaveGame)
 	UFGPipeConnectionFactory* inputConnection;
@@ -97,29 +138,27 @@ protected:
 	UPROPERTY(SaveGame)
 	UFGInventoryComponent* mInputInventory;
 
-	TSubclassOf<UFGItemDescriptor> foundFluidType;
+	TSubclassOf<UFGItemDescriptor> cachedFoundFluid;
 
 public:
-	void BeginPlay();
+	virtual void BeginPlay() override;
+	//virtual void Tick(float dt) override;
+	//virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
 	virtual TSubclassOf<UFGItemDescriptor> GetVentItem_Current() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
-	virtual TSubclassOf<UFGItemDescriptor> GetFoundFluid() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
-	virtual int GetVentRate_Display() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
 	virtual int GetStoredFluid_Current() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
-	UFGPipeConnectionFactory* GetInputConnection() const { return inputConnection; };
+	virtual TSubclassOf<UFGItemDescriptor> GetFoundFluid() const { return cachedFoundFluid; };
 
-	// must handoff to the Blueprint to do actor swapping and initalization etc (call in gameplay thread)
-	UFUNCTION(BlueprintImplementableEvent, Category = "Exhaust System|Instance")
-	void ExhaustFluidUpdate(TSubclassOf<UFGItemDescriptor> newFluid, TSubclassOf<AABExhaustVisualizer> newVisualizer);
+	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
+	int GetVentRate_Display() const { return displayVentRate; };
+
+	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
+	UFGPipeConnectionFactory* GetInputConnection() const { return inputConnection; };
 
 	// set the instance specific saftey state, returns true if changed
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance", meta = (ReturnDisplayName = "WasChanged"))
@@ -135,16 +174,12 @@ public:
 
 protected:
 	virtual void Factory_Tick(float dt) override;
-	//virtual void Factory_TickProducing(float dt);
-	//virtual void Factory_StopProducing();
 
 	//void StartProductionLoopEffects(bool didStartProducing);
 	//void StopProductionLoopEffects(bool didStopProducing);
 
-	virtual void UpdateFluid();
-	virtual void PullFluid(float dt);
+	virtual void PullFluid(float dt, int currentStore);
 	virtual void VentFluid(float dt);
-	virtual bool isValidFluid(TSubclassOf<UFGItemDescriptor> item);
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System")
