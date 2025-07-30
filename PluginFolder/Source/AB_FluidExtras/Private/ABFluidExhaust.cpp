@@ -87,7 +87,7 @@ void AABFluidExhaust::Factory_Tick(float dt) {
 	UE_LOG(LogTemp, Warning, TEXT("~~~~ FTick: %s"), *nextInspection.ToString());
 
 	// if a new fluid is waiting we need to switch our visualizer, but we should only do that when empty
-	if (cachedFoundFluid != foundFluidType) {
+	if (cachedFoundFluid != foundFluidType || bActivePurge) {
 		cachedFoundFluid = foundFluidType;
 
 		UE_LOG(LogTemp, Warning, TEXT("~~~~ FluidSurprise = "));
@@ -118,7 +118,6 @@ void AABFluidExhaust::Factory_Tick(float dt) {
 			PullFluid(dt, storedUnits);
 		}
 
-		bActiveVenting = true;
 		VentFluid(dt);
 	}
 
@@ -130,12 +129,18 @@ void AABFluidExhaust::Factory_Tick(float dt) {
 		);
 	}
 
-	// bend the display towards the actual amount
-	int delta = actualVentRate - displayVentRate;
-	if (delta > -100 && delta < 100) {
-		displayVentRate = actualVentRate;
+	// bend the display towards the actual amount and paper over some situations where the numbers might worry people
+	if (bActivePurge) {
+		displayVentRate = maxRatePerMin;
+	} else if(!bAutoRateVenting && actualVentRate > (targetVentRate - 100)) {
+		displayVentRate = targetVentRate;
 	} else {
-		displayVentRate += (delta / 2.0) + 0.5f;
+		int delta = actualVentRate - displayVentRate;
+		if (delta > -10 && delta < 10) {
+			displayVentRate = actualVentRate;
+		} else {
+			displayVentRate += delta / 2;
+		}
 	}
 	UE_LOG(LogTemp, Warning, TEXT("~ display %d"), displayVentRate);
 }
@@ -145,7 +150,7 @@ void AABFluidExhaust::PullFluid(float dt, int currentStore) {
 	UE_LOG(LogTemp, Warning, TEXT("~~~~ PullFluid = "));
 
 	// measure pull
-	int pullCount = FMath::CeilToInt(10000 * dt); // 600/min adjusted for DeltaT
+	int pullCount = FMath::CeilToInt(10000 * dt); // 600/min adjusted for DeltaT, fine being wrong
 	int currentSpace = storageOverride - currentStore;
 	if (pullCount > currentSpace) {
 		pullCount = currentSpace;
@@ -167,33 +172,34 @@ void AABFluidExhaust::VentFluid(float dt) {
 	UE_LOG(LogTemp, Warning, TEXT("~~~~ VentFluid = "));
 
 	int currentStore = GetStoredFluid_Current();
-	int maxThisTick = FMath::CeilToInt((float(maxRatePerMin) / 60.0f) * dt); // correct for DeltaT
-	int ventCount;
+	float maxThisTick = (float(maxRatePerMin) / 60.0f) * dt; // correct for DeltaT
+	float ventCount, ventRate;
 
 	// determine how much we're venting
 	if (bActivePurge) {
-		ventCount = maxThisTick;
+		ventRate = maxRatePerMin;
 	} else {
 		// TODO: wanted to do some kind of anti jank pulsing logic here using minimums but I need to think harder
-		//float itemsPerSec = (minRatePerMin / 60) * minRuntime;
+		/*float itemsPerSec = (minRatePerMin / 60) * minRuntime;
 		int minStoreToVent = 0;// FMath::CeilToInt(itemsPerSec * dt);
 
 		if (currentStore <= minStoreToVent) {
 			bActiveVenting = false;
 			return;
-		}
+		}*/
 
-		ventCount = bAutoRateVenting ? currentStore : targetVentRate;
+		ventRate = bAutoRateVenting ? currentStore : targetVentRate;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("~ units %d"), ventCount);
+	UE_LOG(LogTemp, Warning, TEXT("~ desire/m %f"), ventRate);
 
 	// apply the venting
-	ventCount = FMath::CeilToInt((float(ventCount) / 60.0f) * dt); // correct for DeltaT
+	ventCount = (ventRate / 60.0f) * dt; // correct for DeltaT
 
-	UE_LOG(LogTemp, Warning, TEXT("~ delta %d"), ventCount);
-	if (ventCount <= 0) {
-		ventCount = 1; //TODO: consider partials accumulation
+	UE_LOG(LogTemp, Warning, TEXT("~ deltaT   %f"), ventCount);
+	if (fracationAccumulator > 1.0f) {
+		fracationAccumulator -= 1.0f;
+		ventCount += 1.0f;
 	}
 	if (ventCount > currentStore) {
 		ventCount = currentStore;
@@ -202,14 +208,19 @@ void AABFluidExhaust::VentFluid(float dt) {
 		ventCount = maxThisTick;
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("~ adjust   %f"), ventCount);
 	if (ventCount > 0) {
 		bActiveVenting = true;
-		mInputInventory->RemoveFromIndex(0, ventCount);
+
+		int unitsThisTick = int(ventCount);
+		fracationAccumulator += ventCount - unitsThisTick;
+
+		mInputInventory->RemoveFromIndex(0, unitsThisTick);
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("~ final %d"), ventCount);
-	actualVentRate = FMath::CeilToInt((float(ventCount) / dt) * 60.0f);
-	UE_LOG(LogTemp, Warning, TEXT("~ actual %d"), actualVentRate);
+	UE_LOG(LogTemp, Warning, TEXT("~ final    %f"), ventCount);
+	actualVentRate = FMath::CeilToInt((ventCount / dt) * 60.0f);
+	UE_LOG(LogTemp, Warning, TEXT("~ actual/m %d"), actualVentRate);
 }
 
 // static //

@@ -124,6 +124,9 @@ protected:
 	// visually shown vent rate, lags a little behind actual rate to reduce jank and snapping. Units/min
 	int displayVentRate;
 
+	// store partials to more accurately represent rates over multiple ticks
+	float fracationAccumulator;
+
 	// are we venting now
 	bool bActiveVenting = false;
 
@@ -156,6 +159,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
 	int GetVentRate_Display() const { return displayVentRate; };
+
+	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
+	bool GetIsPurging() const { return bActivePurge; };
+
 
 	UFUNCTION(BlueprintCallable, Category = "Exhaust System|Instance")
 	UFGPipeConnectionFactory* GetInputConnection() const { return inputConnection; };
