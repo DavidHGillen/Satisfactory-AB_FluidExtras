@@ -19,7 +19,7 @@ void AABExhaustHologram::GetSupportedBuildModes_Implementation(TArray<TSubclassO
 	Super::GetSupportedBuildModes_Implementation(out_buildmodes);
 
 	for (int i = 0, l = visualizers.Num(); i < l; i++) {
-		AABExhaustVisualizer* check = visualizers[i].GetDefaultObject();
+		TObjectPtr<AABExhaustVisualizer> check = visualizers[i].GetDefaultObject();
 		if (check->modeDescriptor) { out_buildmodes.AddUnique(check->modeDescriptor); }
 	}
 }
@@ -32,7 +32,7 @@ void AABExhaustHologram::OnBuildModeChanged(TSubclassOf<UFGHologramBuildModeDesc
 
 	// add new build mode actors
 	for (int i = 0, l = visualizers.Num(); i < l; i++) {
-		AABExhaustVisualizer* check = visualizers[i].GetDefaultObject();
+		TObjectPtr<AABExhaustVisualizer> check = visualizers[i].GetDefaultObject();
 	}
 
 	Super::OnBuildModeChanged(buildMode);
@@ -57,16 +57,16 @@ bool AABExhaustHologram::CanNudgeHologram() const {
 }
 
 bool AABExhaustHologram::TrySnapToActor(const FHitResult& hitResult) {
-	AActor* hitActor = hitResult.GetActor();
+	TObjectPtr<AActor> hitActor = hitResult.GetActor();
 	const float snapTolerance = 200.0f;
 	mSnappedPipeConnection = NULL;
 	mSnappedBuilding = NULL;
 
 	// pipeline end snapping
-	AFGBuildablePipeline* hitPipeline = Cast<AFGBuildablePipeline>(hitActor);
+	TObjectPtr<AFGBuildablePipeline> hitPipeline = Cast<AFGBuildablePipeline>(hitActor);
 	if (hitPipeline != NULL && bWallAttachment) {
 		FTransform snapTransform;
-		USplineComponent* splineRef = hitPipeline->GetSplineComponent();
+		TObjectPtr<USplineComponent> splineRef = hitPipeline->GetSplineComponent();
 		float length = splineRef->GetSplineLength();
 		float distance0 = splineRef->FindDistanceClosestToWorldLocation(hitResult.Location);
 		float distance1 = length - distance0;
@@ -91,7 +91,7 @@ bool AABExhaustHologram::TrySnapToActor(const FHitResult& hitResult) {
 }
 
 void AABExhaustHologram::SetHologramLocationAndRotation(const FHitResult& hitResult) {
-	AActor* hitActor = hitResult.GetActor();
+	TObjectPtr<AActor> hitActor = hitResult.GetActor();
 
 	if (!bWallAttachment) {
 		Super::SetHologramLocationAndRotation(hitResult);
@@ -103,7 +103,7 @@ void AABExhaustHologram::SetHologramLocationAndRotation(const FHitResult& hitRes
 	FVector outLocation = FVector::Zero();
 
 	// wall placement
-	AFGBuildableWall* hitWall = Cast<AFGBuildableWall>(hitActor);
+	TObjectPtr<AFGBuildableWall> hitWall = Cast<AFGBuildableWall>(hitActor);
 	if (hitWall != NULL) {
 		SnapToWall(hitWall, hitResult.ImpactNormal, hitResult.ImpactPoint, EAxis::X, FVector::Zero(), 0.0f, outLocation, outRotation);
 		SetActorLocationAndRotation(outLocation, outRotation);
@@ -149,7 +149,7 @@ void AABExhaustHologram::CheckValidPlacement() {
 }
 
 void AABExhaustHologram::ConfigureActor(AFGBuildable* inBuildable) const {
-	AABFluidExhaust* exhaust = Cast<AABFluidExhaust>(inBuildable);
+	TObjectPtr<AABFluidExhaust> exhaust = Cast<AABFluidExhaust>(inBuildable);
 	Super::ConfigureActor(inBuildable);
 
 	// distance
@@ -158,8 +158,8 @@ void AABExhaustHologram::ConfigureActor(AFGBuildable* inBuildable) const {
 
 void AABExhaustHologram::ConfigureComponents(AFGBuildable* inBuildable) const {
 	if (mSnappedPipeConnection != NULL) {
-		AFGPipeSubsystem* pipeSubsys = AFGPipeSubsystem::GetPipeSubsystem(GetWorld());
-		UFGPipeConnectionFactory* connection = inBuildable->GetComponentByClass<UFGPipeConnectionFactory>();
+		TObjectPtr<AFGPipeSubsystem> pipeSubsys = AFGPipeSubsystem::GetPipeSubsystem(GetWorld());
+		TObjectPtr<UFGPipeConnectionFactory> connection = inBuildable->GetComponentByClass<UFGPipeConnectionFactory>();
 		connection->SetConnection(mSnappedPipeConnection);
 		pipeSubsys->RegisterFluidIntegrant(connection);
 	}

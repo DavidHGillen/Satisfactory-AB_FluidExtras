@@ -136,10 +136,10 @@ protected:
 	FDateTime nextInspection;
 
 	UPROPERTY(SaveGame)
-	UFGPipeConnectionFactory* inputConnection;
+	TObjectPtr<UFGPipeConnectionFactory> inputConnection;
 
 	UPROPERTY(SaveGame)
-	UFGInventoryComponent* mInputInventory;
+	TObjectPtr<UFGInventoryComponent> mInputInventory;
 
 	TSubclassOf<UFGItemDescriptor> cachedFoundFluid;
 

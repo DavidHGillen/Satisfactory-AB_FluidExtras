@@ -28,8 +28,6 @@ bool AABSmartPacker::IsConfigured() const {
 // Custom
 void AABSmartPacker::InitializeCache() {
 	recipeCache.Empty();
-
-	//UE_LOG(LogTemp, Warning, TEXT("[ ] init cache [ %d ] Recipes left"), recipeCache.Num());
 }
 
 void AABSmartPacker::UpdateCache(AFGRecipeManager* recipeManager, TSubclassOf<AFGBuildableManufacturer> fromBuilding) {
@@ -66,7 +64,7 @@ void AABSmartPacker::FindRecipeFromInputs() {
 	//UE_LOG(LogTemp, Warning, TEXT("[ ] Browsing: %d "), recipeCache.Num());
 
 	for (int i = 0, l = recipeCache.Num(); i < l; i++) {
-		TArray<FItemAmount> ingredients = UFGRecipe::GetIngredients(recipeCache[i]);
+		TArray<FItemAmount> ingredients = UFGRecipe::GetIngredients(GetWorld(), recipeCache[i]);
 
 		if (ingredients.Num() == 2) {
 			if ((ingredients[0].ItemClass == currentFluidIn || ingredients[0].ItemClass == currentSolidIn) &&
